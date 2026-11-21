@@ -1,4 +1,7 @@
-# Meine App – iPhone-Web-App (PWA) über GitHub Pages
+# Sudoku – iPhone-Web-App (PWA) über GitHub Pages
+
+Dateien: `index.html` (Aufbau), `style.css` (Liquid-Glass-Design), `app.js` (Spiellogik),
+`sudoku.js` (Rätsel-Generator), `bg.js` (interaktiver Hintergrund), `sw.js` (Offline), `manifest.json`, `icons/`.
 
 ## Online stellen
 1. Auf github.com ein neues **öffentliches** Repository anlegen (z. B. `meine-app`).
