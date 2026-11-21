@@ -167,7 +167,7 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 }
 .drop .levels { padding-bottom: 2px; }
 .menu-bottom .resume { max-height: 90px; overflow: hidden; transition: opacity 0.25s, transform 0.25s, max-height 0.35s, padding 0.35s, margin 0.35s; }
-#menu.pick .resume { opacity: 0; transform: scale(0.95); pointer-events: none; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: -10px; }
+#menu.pick .resume { opacity: 0; transform: scale(0.95); pointer-events: none; max-height: 0; height: 0; margin-top: -10px; }
 .drop .btn.level { padding: 12px 22px; }
 
 /* "Neues Spiel" wird zu "Abbrechen" */
@@ -175,10 +175,16 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 #menu.pick .btn.start { background: rgba(255, 255, 255, 0.04); color: var(--muted); }
 
 .pill { border-radius: 999px !important; }
+/* Neues Spiel und Fortsetzen: exakt gleich hoch */
+.btn.start, .btn.resume {
+  height: 62px;
+  padding-top: 0;
+  padding-bottom: 0;
+  justify-content: center;
+}
 .btn.start {
   width: 100%;
-  padding: 18px;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
   background: rgba(124, 156, 255, 0.28);
 }
@@ -203,10 +209,90 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 2px;
+  gap: 1px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
-.resume-title { font-size: 18px; font-weight: 700; }
-.resume-info { font-size: 13px; color: rgba(235, 240, 255, 0.75); }
+.resume-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.resume-info { font-size: 12px; line-height: 1.2; color: rgba(235, 240, 255, 0.7); }
+
+/* Platz für die Leiste unten */
+#menu, #stats { padding-bottom: calc(env(safe-area-inset-bottom) + 96px); }
+
+/* ---------- Leiste unten ---------- */
+.tabbar {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(calc(100% - 64px), 300px);
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+.tabbar.hidden-bar { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+.tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 0 6px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  transition: color 0.25s, transform 0.15s cubic-bezier(.3,1.6,.5,1);
+}
+.tab svg { width: 22px; height: 22px; }
+.tab.active { color: #fff; }
+.tab.pressed { transform: scale(0.92); }
+/* Gleitende Markierung hinter dem aktiven Tab */
+.tab-indicator {
+  position: absolute;
+  top: 5px; bottom: 5px; left: 5px;
+  width: calc(50% - 5px);
+  border-radius: 999px;
+  background: rgba(124, 156, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.4s cubic-bezier(.3, 1.3, .4, 1);
+}
+.tabbar[data-active="stats"] .tab-indicator { transform: translateX(100%); }
+
+/* ---------- Statistik ---------- */
+#stats {
+  align-items: center;
+  gap: 14px;
+  overflow-y: auto;
+  padding-top: calc(env(safe-area-inset-top) + 24px);
+}
+.page-title { font-size: 30px; font-weight: 800; width: min(100%, 380px); }
+.stats-total {
+  width: min(100%, 380px);
+  flex: none;
+  border-radius: 28px;
+  padding: 18px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+.total-num { font-size: 44px; font-weight: 800; line-height: 1; }
+.total-label { font-size: 15px; color: var(--muted); font-weight: 600; }
+.stat-list { width: min(100%, 380px); display: flex; flex-direction: column; gap: 10px; }
+.stat-card { border-radius: 24px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.stat-row { display: flex; align-items: center; gap: 12px; }
+.stat-name { flex: 1; font-size: 16px; font-weight: 700; }
+.stat-count { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.stat-bar span { display: block; height: 100%; border-radius: 3px; opacity: 0.85; transition: width 0.6s ease; }
+.stat-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.stat-meta b { color: var(--text); font-weight: 700; }
 
 /* ---------- Spiel ---------- */
 #game { gap: 10px; align-items: center; }

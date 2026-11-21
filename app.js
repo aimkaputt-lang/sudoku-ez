@@ -11,6 +11,7 @@
   ];
   const SAVE_KEY = 'sudoku-save-v1';
   const BEST_KEY = 'sudoku-best-v1';
+  const STATS_KEY = 'sudoku-stats-v1'; // { [stufe]: { solved, bestTime, totalTime, noHint } }
 
   const $ = (s) => document.querySelector(s);
   const store = {
@@ -126,7 +127,52 @@
   // ---------- Bildschirme ----------
   function show(id) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
-    if (id === 'menu') { buildMenu(); menuView('main'); Bg.setProgress(0); Bg.setGrey(false); }
+    if (id === 'menu') { buildMenu(); menuView('main'); }
+    if (id === 'stats') buildStats();
+    if (id !== 'game') { Bg.setProgress(0); Bg.setGrey(false); }
+    // Leiste unten nur auf Menü und Statistik
+    const bar = $('#tabbar');
+    bar.classList.toggle('hidden-bar', id === 'game');
+    bar.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === id));
+    bar.dataset.active = id;
+  }
+
+  // ---------- Statistik ----------
+  function recordWin(g) {
+    const stats = store.get(STATS_KEY) || {};
+    const s = stats[g.level] || { solved: 0, bestTime: 0, totalTime: 0, noHint: 0 };
+    s.solved++;
+    s.totalTime += g.elapsed;
+    if (!s.bestTime || g.elapsed < s.bestTime) s.bestTime = g.elapsed;
+    if (!g.hints) s.noHint++;
+    stats[g.level] = s;
+    store.set(STATS_KEY, stats);
+  }
+
+  function buildStats() {
+    const stats = store.get(STATS_KEY) || {};
+    const best = store.get(BEST_KEY) || {};
+    const total = LEVELS.reduce((n, _, i) => n + ((stats[i] && stats[i].solved) || 0), 0);
+    const max = Math.max(1, ...LEVELS.map((_, i) => (stats[i] && stats[i].solved) || 0));
+    $('#statTotal').textContent = total;
+    $('#statList').innerHTML = LEVELS.map((L, i) => {
+      const s = stats[i] || { solved: 0 };
+      const avg = s.solved ? fmtTime(s.totalTime / s.solved) : '–';
+      return `
+        <div class="stat-card glass">
+          <div class="stat-row">
+            <span class="dot" style="background:${L.color};box-shadow:0 0 10px ${L.color}"></span>
+            <span class="stat-name">${L.name}</span>
+            <span class="stat-count">${s.solved}</span>
+          </div>
+          <div class="stat-bar"><span style="width:${(s.solved / max) * 100}%;background:${L.color}"></span></div>
+          <div class="stat-meta">
+            <span>Bestzeit <b>${s.bestTime ? fmtTime(s.bestTime) : '–'}</b></span>
+            <span>Ø <b>${avg}</b></span>
+            <span>Rekord <b>${best[i] || '–'}</b></span>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   // Hauptmenü hat zwei Ansichten: Start-Ansicht und Schwierigkeitsauswahl
@@ -447,6 +493,7 @@
     const waveTime = wave(last, [...Array(81).keys()], true);
     stopTimer();
     store.del(SAVE_KEY);
+    recordWin(G);
     const L = LEVELS[G.level];
     const mins = G.elapsed / 60000;
     const timeBonus = Math.max(0, Math.round((L.par - mins) * 20 * L.mult));
@@ -524,6 +571,9 @@
   tap($('#notesBtn'), toggleNotes);
   tap($('#resumeBtn'), resumeGame);
   tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
+  document.querySelectorAll('#tabbar .tab').forEach((t) => tap(t, () => {
+    if (!t.classList.contains('active')) show(t.dataset.tab);
+  }));
   document.addEventListener('pointerdown', (e) => Bg.ripple(e.clientX, e.clientY));
 
   // Tastatur (für den PC)

@@ -51,6 +51,29 @@
     </div>
   </section>
 
+  <!-- Statistik -->
+  <section id="stats" class="screen">
+    <h2 class="page-title">Statistik</h2>
+    <div class="stats-total glass">
+      <span id="statTotal" class="total-num">0</span>
+      <span class="total-label">Sudokus gelöst</span>
+    </div>
+    <div id="statList" class="stat-list"></div>
+  </section>
+
+  <!-- Leiste unten: Spielen / Statistik -->
+  <nav id="tabbar" class="tabbar glass">
+    <span class="tab-indicator"></span>
+    <button class="tab active" data-tab="menu">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/></svg>
+      <span>Spielen</span>
+    </button>
+    <button class="tab" data-tab="stats">
+      <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>
+      <span>Statistik</span>
+    </button>
+  </nav>
+
   <!-- Spiel -->
   <section id="game" class="screen">
     <header class="topbar">
