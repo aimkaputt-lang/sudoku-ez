@@ -1,5 +1,5 @@
 // Version erhöhen, wenn du Dateien änderst, damit iPhones die neue Version laden
-const CACHE = 'sudoku-v28';
+const CACHE = 'sudoku-v29';
 const FILES = [
   './',
   './index.html',
@@ -9,9 +9,9 @@ const FILES = [
   './bg.js',
   './paper.js',
   './manifest.json',
-  './icons/icon-180.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icons/icon-180.png?v=3',
+  './icons/icon-192.png?v=3',
+  './icons/icon-512.png?v=3',
 ];
 
 self.addEventListener('install', (e) => {

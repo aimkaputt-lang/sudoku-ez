@@ -64,13 +64,15 @@ const Paper = (() => {
     const H = 40;
     const teeth = Math.max(4, Math.round(w / 75));
     const step = w / teeth;
-    let d = `M0,${H} L0,${(24 + r() * 6).toFixed(1)}`;
+    // Beide Ränder beginnen bzw. enden in einem vollständigen Tal, damit keine Zacke angeschnitten wirkt
+    let d = `M0,${H} L0,${(28 + r() * 4).toFixed(1)}`;
     for (let i = 0; i < teeth; i++) {
       const x0 = i * step;
+      const last = i === teeth - 1;
       const peakX = x0 + step * (0.4 + r() * 0.2);
       const peakY = 2 + r() * 7;
-      const valleyX = Math.min(w, x0 + step * (0.94 + r() * 0.12));
-      const valleyY = 26 + r() * 8;
+      const valleyX = last ? w : x0 + step * (0.94 + r() * 0.12);
+      const valleyY = last ? 28 + r() * 4 : 26 + r() * 8;
       d += ` L${peakX.toFixed(1)},${peakY.toFixed(1)} L${valleyX.toFixed(1)},${valleyY.toFixed(1)}`;
     }
     d += ` L${w},${H} Z`;
