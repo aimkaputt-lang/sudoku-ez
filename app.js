@@ -19,6 +19,38 @@
     del(k) { try { localStorage.removeItem(k); } catch {} },
   };
 
+  // ---------- Antippen ----------
+  // Ein Button löst erst beim Loslassen aus, und nur wenn der Finger noch darauf ist.
+  // Zieht man den Finger herunter, wird der Druck abgebrochen (falls man sich vertippt hat).
+  const SLOP = 12; // Pixel Spielraum am Rand
+  function tap(el, fn) {
+    let id = null;
+    const inside = (e) => {
+      const r = el.getBoundingClientRect();
+      return e.clientX >= r.left - SLOP && e.clientX <= r.right + SLOP &&
+             e.clientY >= r.top - SLOP && e.clientY <= r.bottom + SLOP;
+    };
+    const end = () => { id = null; el.classList.remove('pressed'); };
+    el.addEventListener('pointerdown', (e) => {
+      if (e.button > 0) return;
+      id = e.pointerId;
+      el.classList.add('pressed');
+      try { el.setPointerCapture(id); } catch {}
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerId === id) el.classList.toggle('pressed', inside(e));
+    });
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== id) return;
+      const ok = inside(e);
+      end();
+      if (ok) fn(e);
+    });
+    el.addEventListener('pointercancel', end);
+    // Tastatur (Enter / Leertaste) am PC
+    el.addEventListener('click', (e) => { if (e.detail === 0) fn(e); });
+  }
+
   // ---------- Zustand ----------
   let G = null;          // aktuelles Spiel
   let sel = -1;          // ausgewähltes Feld
@@ -63,7 +95,7 @@
       const b = document.createElement('button');
       b.className = 'key glass';
       b.textContent = n;
-      b.addEventListener('click', () => input(n));
+      tap(b, () => input(n));
       pad.appendChild(b);
       keys[n] = b;
     }
@@ -80,7 +112,7 @@
         <span class="dot" style="background:${L.color};box-shadow:0 0 12px ${L.color}"></span>
         <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.desc}</span></span>
         <span class="level-best">${best[idx] ? '★ ' + best[idx] : ''}</span>`;
-      b.addEventListener('click', () => requestNewGame(idx));
+      tap(b, () => requestNewGame(idx));
       wrap.appendChild(b);
     });
     const saved = store.get(SAVE_KEY);
@@ -94,7 +126,12 @@
   // ---------- Bildschirme ----------
   function show(id) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
-    if (id === 'menu') { buildMenu(); Bg.setProgress(0); }
+    if (id === 'menu') { buildMenu(); menuView('main'); Bg.setProgress(0); Bg.setGrey(false); }
+  }
+
+  // Hauptmenü hat zwei Ansichten: Start-Ansicht und Schwierigkeitsauswahl
+  function menuView(v) {
+    $('#menu').classList.toggle('pick', v === 'levels');
   }
 
   // ---------- Spielstart ----------
@@ -398,6 +435,7 @@
     badge.textContent = G.hints;
     badge.classList.toggle('hidden', !G.hints);
     Bg.setProgress(progressOf(G));
+    Bg.setGrey(notesMode);
   }
 
   // ---------- Spielende ----------
@@ -449,13 +487,11 @@
       m.classList.remove('open');
       setTimeout(() => m.classList.add('hidden'), 220);
     };
-    sheet.onclick = (e) => {
-      const b = e.target.closest('[data-act]');
-      if (!b) return;
+    sheet.querySelectorAll('[data-act]').forEach((b) => tap(b, () => {
       close();
       actions[b.dataset.act] && actions[b.dataset.act]();
       if (b.dataset.act === 'cancel' && actions.onCancel) actions.onCancel();
-    };
+    }));
     m.onclick = (e) => {
       if (e.target === m && dismissable) { close(); actions.onCancel && actions.onCancel(); }
     };
@@ -479,12 +515,14 @@
   }
 
   // ---------- Ereignisse ----------
-  $('#backBtn').addEventListener('click', backDialog);
-  $('#undoBtn').addEventListener('click', undo);
-  $('#eraseBtn').addEventListener('click', erase);
-  $('#hintBtn').addEventListener('click', useHint);
-  $('#notesBtn').addEventListener('click', toggleNotes);
-  $('#resumeBtn').addEventListener('click', resumeGame);
+  tap($('#backBtn'), backDialog);
+  tap($('#undoBtn'), undo);
+  tap($('#eraseBtn'), erase);
+  tap($('#hintBtn'), useHint);
+  tap($('#notesBtn'), toggleNotes);
+  tap($('#resumeBtn'), resumeGame);
+  tap($('#startBtn'), () => menuView('levels'));
+  tap($('#levelsBack'), () => menuView('main'));
   document.addEventListener('pointerdown', (e) => Bg.ripple(e.clientX, e.clientY));
 
   // Tastatur (für den PC)

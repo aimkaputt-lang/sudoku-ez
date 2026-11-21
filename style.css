@@ -88,7 +88,9 @@ svg {
 .btn, .key, .icon-btn, .tool {
   transition: transform 0.15s cubic-bezier(.3,1.6,.5,1), background 0.2s, opacity 0.2s;
 }
-.btn:active, .key:active, .tool:active .icon-btn, .icon-btn:active { transform: scale(0.93); }
+/* "pressed" setzt app.js, solange der Finger auf dem Button liegt. Zieht man ihn weg, verschwindet es. */
+.btn.pressed, .key.pressed, .tool.pressed .icon-btn, .icon-btn.pressed { transform: scale(0.93); }
+.btn.pressed, .key.pressed, .tool.pressed .icon-btn { background-color: rgba(255, 255, 255, 0.1); }
 
 /* ---------- Bildschirme ---------- */
 .screen {
@@ -135,14 +137,43 @@ svg {
 h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 .sub { color: var(--muted); margin-top: 4px; font-size: 15px; }
 
-.levels { display: flex; flex-direction: column; gap: 10px; width: min(100%, 380px); }
+/* Zwei Ansichten im Menü: Start ↔ Schwierigkeit */
+.menu-main, .menu-levels {
+  width: min(100%, 380px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.menu-levels { display: none; }
+#menu.pick .menu-main { display: none; }
+#menu.pick .menu-levels { display: flex; animation: slide-in 0.3s ease; }
+#menu:not(.pick) .menu-main { animation: slide-in 0.3s ease; }
+@keyframes slide-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.pill { border-radius: 999px !important; }
+.btn.start {
+  width: 100%;
+  padding: 18px;
+  font-size: 19px;
+  font-weight: 700;
+  background: rgba(124, 156, 255, 0.28);
+}
+.ghost-pill {
+  padding: 12px 28px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.levels { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .btn.level, .btn.resume {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 14px 18px;
-  border-radius: 20px;
+  padding: 14px 24px;
+  border-radius: 999px;
   text-align: left;
 }
 .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
@@ -152,11 +183,10 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 .level-best { font-size: 14px; color: var(--hint); font-weight: 600; }
 
 .btn.resume {
-  width: min(100%, 380px);
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   gap: 2px;
-  background: rgba(124, 156, 255, 0.22);
 }
 .resume-title { font-size: 18px; font-weight: 700; }
 .resume-info { font-size: 13px; color: rgba(235, 240, 255, 0.75); }
@@ -350,7 +380,7 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
   color: #f4f6ff;
   transition: transform 0.18s cubic-bezier(.3,1.6,.5,1), background 0.25s, color 0.25s, opacity 0.2s;
 }
-.key:active {
+.key.pressed {
   transform: scale(0.92);
   background: rgba(255, 255, 255, 0.12);
 }
@@ -396,7 +426,7 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 .sheet p { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
 .sheet-btn {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 999px;
   font-size: 16px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.09);

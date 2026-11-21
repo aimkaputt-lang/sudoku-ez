@@ -32,9 +32,15 @@ const Bg = (() => {
     }
     const t = (p - a.at) / (b.at - a.at || 1);
     const mix = (x, y) => x.map((v, i) => Math.round(lerp(v, y[i], t)));
-    return { top: mix(a.top, b.top), bottom: mix(a.bottom, b.bottom),
-             hue: lerp(a.hue, b.hue, t), sat: lerp(a.sat, b.sat, t) };
+    // Notizmodus: Farbe weich zu Grau entsättigen
+    const toGrey = (c) => {
+      const l = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+      return c.map((v) => Math.round(lerp(v, l, grey)));
+    };
+    return { top: toGrey(mix(a.top, b.top)), bottom: toGrey(mix(a.bottom, b.bottom)),
+             hue: lerp(a.hue, b.hue, t), sat: lerp(a.sat, b.sat, t) * (1 - grey) };
   }
+  let grey = 0, greyTarget = 0;
   const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
 
   // ---------- Elemente ----------
@@ -67,6 +73,7 @@ const Bg = (() => {
   function frame(now) {
     const t = (now - t0) / 1000;
     p += (target - p) * 0.006;           // sehr weicher Übergang (einige Sekunden)
+    grey += (greyTarget - grey) * 0.06;  // Notizmodus: in etwa einer halben Sekunde grau
     const pal = palette();
     const m = Math.max(W, H);
 
@@ -156,6 +163,7 @@ const Bg = (() => {
     setProgress(v) { target = clamp(v, 0, 1); },
     jump(v) { target = p = clamp(v, 0, 1); }, // sofort, ohne Übergang (zum Testen)
     get hue() { return palette().hue; },
+    setGrey(on) { greyTarget = on ? 1 : 0; },
     ripple(x, y) { if (ripples.length < 8) ripples.push({ x, y, r: 4, life: 1 }); },
     burst(x, y, n = 14, hue) {
       const h = hue == null ? palette().hue : hue;
