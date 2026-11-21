@@ -312,7 +312,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 .stat-bar span { display: block; height: 100%; border-radius: 3px; transition: width 0.6s ease; }
 
 /* ---------- Spiel ---------- */
-#game { gap: 10px; align-items: center; }
+#game { gap: 8px; align-items: center; }
 
 .topbar { width: min(100%, 520px); display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
 .icon-btn {
@@ -334,13 +334,14 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 .timer { padding: 7px 18px; --radius: 999px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
 /* ---------- Spielfeld ---------- */
+/* Spielfeld gerade (nicht schräg) und so groß wie möglich: fast bildschirmbreit */
 .board-wrap {
-  width: min(100%, 44dvh, 520px);
+  width: min(calc(100% + 16px), 54dvh, 560px);
+  margin: 0 -8px;
   aspect-ratio: 1;
   flex: none;
-  padding: 8px;
-  --radius: 14px;
-  transform: rotate(-0.4deg);
+  padding: 5px;
+  --radius: 12px;
 }
 .board {
   width: 100%;
@@ -417,16 +418,16 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 }
 
 /* ---------- Unteres Blatt im Spiel: Werkzeuge + Zahlen ---------- */
+/* Das schwarze Blatt sitzt unten und ist nur so hoch wie Werkzeuge + Zahlen */
 .game-foot {
-  flex: 1;
-  min-height: 0;
-  margin-top: 20px;
-  padding: 6px 14px calc(env(safe-area-inset-bottom) + 12px);
+  flex: none;
+  margin-top: auto;
+  padding: 2px 14px calc(env(safe-area-inset-bottom) + 10px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  --torn-h: 26px;
+  gap: 10px;
+  --torn-h: 24px;
 }
 .tools { width: min(100%, 420px); display: flex; justify-content: space-around; }
 .tool { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -448,16 +449,13 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 #notesBtn.on .badge.state { background: var(--marker); color: var(--ink); }
 
 .numpad {
-  flex: 1;
-  min-height: 0;
   width: min(100%, 400px);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px 14px;
-  align-content: center;
 }
 .key {
-  height: clamp(36px, 6dvh, 60px);
+  height: clamp(36px, 5.6dvh, 54px);
   --radius: 999px;
   font-size: clamp(21px, 3.4dvh, 30px);
   font-weight: 700;

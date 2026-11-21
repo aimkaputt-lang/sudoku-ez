@@ -60,13 +60,18 @@ const Paper = (() => {
     const w = Math.max(el.offsetWidth, 320);
     if (!el._seed) el._seed = (counter++ * 7919) % 100000 + 17;
     const r = rng(el._seed);
+    // Wenige, ähnlich große Zacken: Abstand 60–90 px, Spitzen und Täler nur leicht variiert
     const H = 40;
-    let x = 0, d = `M0,${H} L0,${(12 + r() * 20).toFixed(1)}`;
-    while (x < w) {
-      const step = 28 + r() * 46;
-      const mid = x + step * (0.35 + r() * 0.3);
-      d += ` L${mid.toFixed(1)},${(r() * 10).toFixed(1)} L${(x + step).toFixed(1)},${(18 + r() * 22).toFixed(1)}`;
-      x += step;
+    const teeth = Math.max(4, Math.round(w / 75));
+    const step = w / teeth;
+    let d = `M0,${H} L0,${(24 + r() * 6).toFixed(1)}`;
+    for (let i = 0; i < teeth; i++) {
+      const x0 = i * step;
+      const peakX = x0 + step * (0.4 + r() * 0.2);
+      const peakY = 2 + r() * 7;
+      const valleyX = Math.min(w, x0 + step * (0.94 + r() * 0.12));
+      const valleyY = 26 + r() * 8;
+      d += ` L${peakX.toFixed(1)},${peakY.toFixed(1)} L${valleyX.toFixed(1)},${valleyY.toFixed(1)}`;
     }
     d += ` L${w},${H} Z`;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`;
