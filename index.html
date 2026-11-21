@@ -42,6 +42,17 @@
 
   <!-- Hauptmenü -->
   <section id="menu" class="screen active">
+    <!-- Oben: Streak (links) und Einstellungen (rechts) -->
+    <div class="menu-top">
+      <div id="streak" class="paper streak">
+        <svg viewBox="0 0 24 24"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.2 3.6-7.8.4 1.8 1.2 3 2.4 3.6-.2-3 1.2-5.6 3.6-7.1-.3 2.8.9 4.6 2.2 6.4 1.1 1.5 1.7 3 1.7 4.9 0 3.6-3 6.2-7 6.2z"/></svg>
+        <b id="streakNum">0</b>
+        <span id="streakLabel">Tage in Folge</span>
+      </div>
+      <button id="settingsBtn" class="paper icon-btn" aria-label="Einstellungen">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+      </button>
+    </div>
     <div class="menu-head">
       <div class="logo paper">
         <span>5</span><span></span><span>3</span>

@@ -112,20 +112,35 @@
     }
   }
 
+  // Runder, dicker Stern (abgerundete Zacken durch dicke Kontur mit runden Ecken)
+  const STAR = '<svg class="star" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.6.7-4.1 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.7z"/></svg>';
+  const LOCK = '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg>';
+
+  // ---------- Freischalten ----------
+  // Stufe 0 und 1 sind immer offen. Für jede weitere braucht man 3 Siege in der Stufe davor.
+  const UNLOCK_WINS = 3;
+  function winsOf(level) { return statOf(store.get(STATS_KEY) || {}, level).solved; }
+  function isUnlocked(level) { return level <= 1 || winsOf(level - 1) >= UNLOCK_WINS; }
+
   function buildMenu() {
     const wrap = $('#levels');
     wrap.innerHTML = '';
     const best = store.get(BEST_KEY) || {};
     LEVELS.forEach((L, idx) => {
+      const open = isUnlocked(idx);
       const b = document.createElement('button');
-      b.className = 'paper btn level';
+      b.className = 'paper btn level' + (open ? '' : ' locked');
+      const desc = open
+        ? (L.label || L.clues + ' Startzahlen')
+        : `Gewinne 3× ${LEVELS[idx - 1].name} (${Math.min(winsOf(idx - 1), UNLOCK_WINS)}/${UNLOCK_WINS})`;
       b.innerHTML = `
         <span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>
-        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.label || L.clues + ' Startzahlen'}</span></span>
-        <span class="level-best">${best[idx] ? '★ ' + best[idx] : ''}</span>`;
-      tap(b, () => requestNewGame(idx));
+        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${desc}</span></span>
+        <span class="level-best">${!open ? LOCK : best[idx] ? STAR + best[idx] : ''}</span>`;
+      tap(b, () => (open ? requestNewGame(idx) : toast(`Erst 3× ${LEVELS[idx - 1].name} gewinnen`)));
       wrap.appendChild(b);
     });
+    renderStreak();
     const saved = store.get(SAVE_KEY);
     const rb = $('#resumeBtn');
     if (saved) {
@@ -173,6 +188,60 @@
     if (!g.mistakes) s.perfect++;
     stats[g.level] = s;
     store.set(STATS_KEY, stats);
+  }
+
+  // ---------- Streak: Tage in Folge mit mindestens einem gewonnenen Spiel ----------
+  const STREAK_KEY = 'sudoku-streak-v1'; // { last: 'JJJJ-MM-TT', count }
+  const dayStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const today = () => dayStr(new Date());
+  const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dayStr(d); };
+  function currentStreak() {
+    const s = store.get(STREAK_KEY);
+    if (!s) return 0;
+    return s.last === today() || s.last === yesterday() ? s.count : 0; // Lücke = Streak vorbei
+  }
+  function recordStreak() {
+    const s = store.get(STREAK_KEY) || { last: '', count: 0 };
+    if (s.last === today()) return s.count;
+    s.count = s.last === yesterday() ? s.count + 1 : 1;
+    s.last = today();
+    store.set(STREAK_KEY, s);
+    return s.count;
+  }
+  function renderStreak() {
+    const n = currentStreak();
+    const s = store.get(STREAK_KEY);
+    $('#streakNum').textContent = n;
+    $('#streakLabel').textContent = n === 1 ? 'Tag in Folge' : 'Tage in Folge';
+    $('#streak').classList.toggle('done-today', !!s && s.last === today());
+  }
+
+  // ---------- Einstellungen ----------
+  const SETTINGS_KEY = 'sudoku-settings-v1';
+  const ERROR_LIMIT = 3;
+  function settings() { return Object.assign({ timer: true, errorLimit: false }, store.get(SETTINGS_KEY)); }
+  function setSetting(k, v) { const s = settings(); s[k] = v; store.set(SETTINGS_KEY, s); }
+
+  function settingsDialog() {
+    const s = settings();
+    const sw = (key, label, sub) => `
+      <button class="setting" data-key="${key}" aria-pressed="${s[key]}">
+        <span class="setting-text"><b>${label}</b><small>${sub}</small></span>
+        <span class="switch${s[key] ? ' on' : ''}"><span></span></span>
+      </button>`;
+    modal(`
+      <h2>Einstellungen</h2>
+      <div class="settings">
+        ${sw('timer', 'Timer', 'Zeit im Spiel anzeigen')}
+        ${sw('errorLimit', 'Fehlerlimit', `Nach ${ERROR_LIMIT} Fehlern ist das Spiel vorbei`)}
+      </div>`, {});
+    document.querySelectorAll('#sheet .setting').forEach((b) => tap(b, () => {
+      const key = b.dataset.key;
+      const v = !settings()[key];
+      setSetting(key, v);
+      b.setAttribute('aria-pressed', v);
+      b.querySelector('.switch').classList.toggle('on', v);
+    }));
   }
 
   // Statistik: pro Schwierigkeit eine Seite, wischbar; oben die Stufen zum Antippen
@@ -260,6 +329,7 @@
         hint: new Array(81).fill(0),
         scored: new Array(81).fill(0),
         mistakes: 0, hints: 0, score: 0, elapsed: 0,
+        limit: settings().errorLimit ? ERROR_LIMIT : 0, // Fehlerlimit gilt fürs ganze Spiel
       };
       recordStart(level);
       $('#loading').classList.add('hidden');
@@ -284,6 +354,7 @@
 
   function enterGame() {
     sel = -1; notesMode = false; history = [];
+    $('#timer').classList.toggle('timer-off', !settings().timer);
     $('#levelName').textContent = LEVELS[G.level].name;
     show('game');
     render();
@@ -417,6 +488,22 @@
       placedCorrect(i, n);
     }
     save(); render(); checkWin(i);
+    if (G && G.limit && G.mistakes >= G.limit) gameOver();
+  }
+
+  // Fehlerlimit erreicht: Spiel vorbei (zählt als gestartet, nicht gewonnen)
+  function gameOver() {
+    stopTimer();
+    store.del(SAVE_KEY);
+    const lvl = G.level;
+    setTimeout(() => {
+      modal(`
+        <h2>Spiel vorbei</h2>
+        <p>${ERROR_LIMIT} Fehler – das Fehlerlimit ist erreicht.</p>
+        <button class="paper btn sheet-btn primary" data-act="again">Neues Spiel</button>
+        <button class="paper btn sheet-btn" data-act="menu">Hauptmenü</button>`,
+        { again: () => newGame(lvl), menu: () => { G = null; show('menu'); } }, false);
+    }, 450);
   }
 
   // Nach einer richtigen Zahl: Notizen bei Nachbarn entfernen, fertige Gruppen feiern
@@ -541,7 +628,7 @@
     restartFlash = false;
     for (let n = 1; n <= 9; n++) keys[n].classList.toggle('done', counts[n] >= 9);
     $('#score').textContent = G.score;
-    $('#mistakes').textContent = G.mistakes;
+    $('#mistakes').textContent = G.limit ? `${G.mistakes}/${G.limit}` : G.mistakes;
     $('#notesBtn').classList.toggle('on', notesMode);
     $('#numpad').classList.toggle('notes-mode', notesMode);
     $('#notesBtn .state').textContent = notesMode ? 'AN' : 'AUS';
@@ -559,7 +646,11 @@
     const waveTime = wave(last, [...Array(81).keys()], true);
     stopTimer();
     store.del(SAVE_KEY);
+    const next = G.level + 1;
+    const wasLocked = next < LEVELS.length && !isUnlocked(next);
     recordWin(G);
+    const unlocked = wasLocked && isUnlocked(next) ? LEVELS[next].name : '';
+    const streak = recordStreak();
     const L = LEVELS[G.level];
     const mins = G.elapsed / 60000;
     const timeBonus = Math.max(0, Math.round((L.par - mins) * 20 * L.mult));
@@ -586,6 +677,8 @@
           <div><span>Zeitbonus</span><b>+${timeBonus}</b></div>
           <div><span>Joker (${G.hints}×)</span><b class="neg">−${hintPenalty}</b></div>
         </div>
+        ${unlocked ? `<p class="unlock-note">Neu freigeschaltet: <b>${unlocked}</b></p>` : ''}
+        <p class="streak-note">${streak} ${streak === 1 ? 'Tag' : 'Tage'} in Folge gespielt</p>
         <button class="paper btn sheet-btn primary" data-act="again">Nochmal</button>
         <button class="paper btn sheet-btn" data-act="menu">Hauptmenü</button>`,
         { again: () => newGame(lvl), menu: () => { G = null; show('menu'); } }, false);
@@ -653,6 +746,7 @@
   tap($('#notesBtn'), toggleNotes);
   tap($('#resumeBtn'), resumeGame);
   tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
+  tap($('#settingsBtn'), settingsDialog);
   // Diagnose: lange auf "Sudokez" im Hauptmenü drücken zeigt die gemessenen Bildschirmwerte
   (() => {
     let timer = 0;
