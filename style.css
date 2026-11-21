@@ -532,6 +532,7 @@ html[data-theme="4"] .stats .label.err { color: var(--ink); }
 .sheet-btn.primary { --fill: var(--ink); color: var(--on-dark); }
 .sheet-btn.danger { color: var(--wrong); }
 .sheet-btn.ghost { --fill: transparent; color: var(--muted); }
+.sheet .hint-tap { font-size: 12px; margin: 4px 0 0; color: var(--muted); }
 
 .record { color: var(--hint); font-weight: 800; }
 .total { font-size: 54px; font-weight: 800; line-height: 1.1; margin: 2px 0 6px; }

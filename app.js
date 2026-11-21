@@ -584,38 +584,54 @@
   }
 
   // ---------- Dialoge ----------
+  let modalHideTimer = 0;
   function modal(html, actions, dismissable = true) {
     const m = $('#modal'), sheet = $('#sheet');
+    clearTimeout(modalHideTimer); // falls direkt ein zweiter Dialog folgt (z. B. Rückfrage)
     sheet.innerHTML = html;
     m.classList.remove('hidden');
     requestAnimationFrame(() => m.classList.add('open'));
     const close = () => {
       m.classList.remove('open');
-      setTimeout(() => m.classList.add('hidden'), 220);
+      modalHideTimer = setTimeout(() => m.classList.add('hidden'), 220);
     };
     sheet.querySelectorAll('[data-act]').forEach((b) => tap(b, () => {
       close();
       actions[b.dataset.act] && actions[b.dataset.act]();
       if (b.dataset.act === 'cancel' && actions.onCancel) actions.onCancel();
     }));
+    const openedAt = performance.now();
     m.onclick = (e) => {
+      // kurz nach dem Öffnen ignorieren, damit der Tipp, der den Dialog geöffnet hat, ihn nicht gleich schließt
+      if (performance.now() - openedAt < 350) return;
       if (e.target === m && dismissable) { close(); actions.onCancel && actions.onCancel(); }
     };
   }
 
   function backDialog() {
     stopTimer();
+    // Weiterspielen = einfach daneben tippen
     modal(`
-      <h2>Spiel unterbrechen?</h2>
-      <p class="muted">${LEVELS[G.level].name} · ${fmtTime(G.elapsed)}</p>
+      <h2>Pausiert</h2>
       <button class="paper btn sheet-btn primary" data-act="pause">Hauptmenü</button>
-      <button class="paper btn sheet-btn" data-act="restart">Neu starten</button>
-      <button class="paper btn sheet-btn danger" data-act="quit">Beenden</button>
-      <button class="paper btn sheet-btn ghost" data-act="cancel">Weiterspielen</button>`,
+      <button class="paper btn sheet-btn primary" data-act="restart">Neu starten</button>
+      <button class="paper btn sheet-btn primary" data-act="quit">Aufgeben</button>
+      <p class="hint-tap">Tippe daneben, um weiterzuspielen</p>`,
       {
         pause: () => { save(); G = null; show('menu'); },
         restart: () => restartGame(),
-        quit: () => { store.del(SAVE_KEY); G = null; show('menu'); },
+        quit: () => giveUpDialog(),
+        onCancel: () => startTimer(),
+      });
+  }
+
+  function giveUpDialog() {
+    modal(`
+      <h2>Willst du wirklich aufgeben, du Loser?</h2>
+      <button class="paper btn sheet-btn primary" data-act="yes">Ja, aufgeben</button>
+      <p class="hint-tap">Tippe daneben, um weiterzuspielen</p>`,
+      {
+        yes: () => { store.del(SAVE_KEY); G = null; show('menu'); },
         onCancel: () => startTimer(),
       });
   }
