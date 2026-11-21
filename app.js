@@ -7,8 +7,9 @@
     { name: 'Kinderleicht',   desc: 'Zum Aufwärmen',          clues: 46, mult: 1,   par: 8,  color: '#cfc6b0' },
     { name: 'Mittelschlecht', desc: 'Ein bisschen Denken',    clues: 38, mult: 1.5, par: 12, color: '#4fc96b' },
     { name: 'Der Profi',      desc: 'Für Kenner',             clues: 32, mult: 2,   par: 18, color: '#efdd73' },
-    { name: 'Gehirnjogging',  desc: 'Ab jetzt wird’s ernst',  clues: 27, mult: 3,   par: 25, color: '#c083dd' },
-    { name: 'Traumatherapie', desc: 'Viel Glück.',            clues: 23, mult: 4,   par: 35, color: '#e2104c' },
+    { name: 'Gehirnjogging',  desc: 'Ab jetzt wird’s ernst',  clues: 25, mult: 3,   par: 25, color: '#c083dd', budget: 600, label: '25 Startzahlen' },
+    // Traumatherapie: Ziel 17 (theoretisches Minimum), der Generator sucht 1,5 s und schafft meist 21–22
+    { name: 'Traumatherapie', desc: 'Viel Glück.',            clues: 17, mult: 4,   par: 35, color: '#e2104c', budget: 1500, label: 'ca. 21 Startzahlen' },
   ];
   // Leicht ungleichmäßige Kreise für die Farbpunkte im Menü (wie mit dem Stift gemalt)
   const BLOBS = [
@@ -120,7 +121,7 @@
       b.className = 'paper btn level';
       b.innerHTML = `
         <span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>
-        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.clues < 30 ? 'ca. ' : ''}${L.clues} Startzahlen</span></span>
+        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.label || L.clues + ' Startzahlen'}</span></span>
         <span class="level-best">${best[idx] ? '★ ' + best[idx] : ''}</span>`;
       tap(b, () => requestNewGame(idx));
       wrap.appendChild(b);
@@ -251,7 +252,7 @@
   function newGame(level) {
     $('#loading').classList.remove('hidden');
     setTimeout(() => {
-      const { puzzle, solution } = Sudoku.generate(LEVELS[level].clues);
+      const { puzzle, solution } = Sudoku.generate(LEVELS[level].clues, LEVELS[level].budget || 0);
       G = {
         level, puzzle, solution,
         values: puzzle.slice(),
@@ -652,7 +653,7 @@
   tap($('#notesBtn'), toggleNotes);
   tap($('#resumeBtn'), resumeGame);
   tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
-  // Diagnose: lange auf "Sudoku" im Hauptmenü drücken zeigt die gemessenen Bildschirmwerte
+  // Diagnose: lange auf "Sudokez" im Hauptmenü drücken zeigt die gemessenen Bildschirmwerte
   (() => {
     let timer = 0;
     const h1 = document.querySelector('#menu h1');

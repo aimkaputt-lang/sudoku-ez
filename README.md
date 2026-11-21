@@ -1,4 +1,4 @@
-# Sudoku – iPhone-Web-App (PWA) über GitHub Pages
+# Sudokez – iPhone-Web-App (PWA) über GitHub Pages
 
 Dateien: `index.html` (Aufbau), `style.css` (Papier-Design), `paper.js` (ungleichmäßige Papierformen
 und Risskanten), `app.js` (Spiellogik), `sudoku.js` (Rätsel-Generator), `bg.js` (gepunktetes Papier,

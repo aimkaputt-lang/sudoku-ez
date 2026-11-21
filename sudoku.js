@@ -73,16 +73,40 @@ const Sudoku = (() => {
     return { puzzle, solution, filled };
   }
 
-  // Bei schweren Stufen mehrere Versuche, das Ergebnis mit den wenigsten Vorgaben gewinnt
-  function generate(clues) {
-    const tries = clues < 30 ? 4 : 1;
+  // Bei schweren Stufen so lange neue Rätsel probieren, bis das Zeitbudget aufgebraucht ist –
+  // das Rätsel mit den wenigsten Vorgaben gewinnt. (17 ist das theoretische Minimum.)
+  function generate(clues, budgetMs = 0) {
+    const start = performance.now();
+    const elapsed = () => performance.now() - start;
     let best = null;
-    for (let t = 0; t < tries; t++) {
+    // 1) Viele zufällige Rätsel, das beste merken (ca. ein Drittel der Zeit)
+    do {
       const r = attempt(clues);
       if (!best || r.filled < best.filled) best = r;
       if (best.filled <= clues) break;
+    } while (elapsed() < budgetMs * 0.35);
+
+    // 2) Das beste Rätsel gezielt weiter ausdünnen: eine Vorgabe gegen eine andere
+    //    tauschen und dann versuchen, noch weitere zu entfernen
+    while (best.filled > clues && elapsed() < budgetMs) {
+      const p = best.puzzle.slice();
+      const given = [], empty = [];
+      for (let i = 0; i < 81; i++) (p[i] ? given : empty).push(i);
+      const g = given[(Math.random() * given.length) | 0];
+      const e = empty[(Math.random() * empty.length) | 0];
+      p[g] = 0;
+      p[e] = best.solution[e];
+      if (countSolutions(p.slice(), 2) !== 1) continue;
+      let filled = given.length;
+      for (const i of shuffle(given.filter((k) => k !== g).concat(e))) {
+        const v = p[i];
+        p[i] = 0;
+        if (countSolutions(p.slice(), 2) !== 1) p[i] = v;
+        else filled--;
+      }
+      if (filled < best.filled) best = { puzzle: p, solution: best.solution, filled };
     }
-    return { puzzle: best.puzzle, solution: best.solution };
+    return { puzzle: best.puzzle, solution: best.solution, clues: best.filled };
   }
 
   return { generate };
