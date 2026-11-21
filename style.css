@@ -32,7 +32,7 @@ html {
   background: linear-gradient(var(--paper) 50%, var(--ink) 50%);
 }
 html, body {
-  height: 100%;
+  height: var(--app-h, 100%);
   overflow: hidden;
   color: var(--ink);
   font-family: var(--font);
@@ -57,7 +57,8 @@ svg {
 
 .hidden { display: none !important; }
 
-#bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+/* Alles Bildschirmfüllende nutzt die selbst gemessene Höhe --app-h (siehe index.html) */
+#bg { position: fixed; top: 0; left: 0; width: 100%; height: var(--app-h, 100dvh); z-index: 0; }
 
 /* ---------- Papierstücke ---------- */
 .paper {
@@ -109,7 +110,8 @@ svg {
 /* ---------- Bildschirme ---------- */
 .screen {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0;
+  height: var(--app-h, 100dvh);
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -218,8 +220,9 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
   position: fixed;
   z-index: 5;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 16px);
-  transform: translateX(-50%);
+  /* oben verankert an der gemessenen Höhe, nicht an "bottom" (iOS meldet das unten teils falsch) */
+  top: calc(var(--app-h, 100dvh) - env(safe-area-inset-bottom) - 16px);
+  transform: translate(-50%, -100%);
   display: grid;
   grid-template-columns: 1fr 1fr;
   width: min(calc(100% - 64px), 300px);
@@ -227,7 +230,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
   --radius: 999px;
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
-.tabbar.hidden-bar { transform: translate(-50%, 160%); opacity: 0; pointer-events: none; }
+.tabbar.hidden-bar { transform: translate(-50%, 60%); opacity: 0; pointer-events: none; }
 .tab {
   position: relative;
   z-index: 1;
@@ -345,7 +348,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
   /* Breite = so breit wie möglich, aber nie höher als der Platz, der neben Kopf,
      Werkzeugen und Zahlen übrig bleibt – so passt alles auf jedes iPhone */
   width: min(calc(100% + 16px), 560px,
-    calc(100dvh - var(--fixed-h) - 3 * var(--key-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+    calc(var(--app-h, 100dvh) - var(--fixed-h) - 3 * var(--key-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   margin: 0 -8px;
   aspect-ratio: 1;
   flex: none;
@@ -486,7 +489,8 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 /* ---------- Dialoge ---------- */
 .modal {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0;
+  height: var(--app-h, 100dvh);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -536,7 +540,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 
 /* ---------- Laden & Hinweis ---------- */
 .loading {
-  position: fixed; inset: 0; z-index: 20;
+  position: fixed; top: 0; left: 0; right: 0; height: var(--app-h, 100dvh); z-index: 20;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   background: rgba(245, 243, 238, 0.85);
   color: var(--ink-2);
@@ -554,7 +558,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  top: calc(var(--app-h, 100dvh) - env(safe-area-inset-bottom) - 64px);
   z-index: 30;
   padding: 10px 18px;
   --radius: 999px;

@@ -16,6 +16,22 @@
   <link rel="icon" href="icons/icon-192.png">
 
   <title>Sudoku</title>
+  <script>
+    // Echte App-Höhe: iOS meldet als Home-Bildschirm-App manchmal eine zu kleine Höhe.
+    // Dann nehmen wir die volle Bildschirmhöhe, damit unten nichts abgeschnitten wird.
+    (function () {
+      function setH() {
+        var standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+        var h = window.innerHeight;
+        if (standalone && screen.height > h && Math.abs(screen.width - window.innerWidth) < 2) h = screen.height;
+        document.documentElement.style.setProperty('--app-h', h + 'px');
+        window.__appH = h;
+      }
+      setH();
+      addEventListener('resize', setH);
+      addEventListener('orientationchange', function () { setTimeout(setH, 300); });
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800&display=swap">

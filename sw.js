@@ -1,5 +1,5 @@
 // Version erhöhen, wenn du Dateien änderst, damit iPhones die neue Version laden
-const CACHE = 'sudoku-v12';
+const CACHE = 'sudoku-v13';
 const FILES = [
   './',
   './index.html',

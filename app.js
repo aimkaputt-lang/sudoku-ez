@@ -616,6 +616,32 @@
   tap($('#notesBtn'), toggleNotes);
   tap($('#resumeBtn'), resumeGame);
   tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
+  // Diagnose: lange auf "Sudoku" im Hauptmenü drücken zeigt die gemessenen Bildschirmwerte
+  (() => {
+    let timer = 0;
+    const h1 = document.querySelector('#menu h1');
+    h1.addEventListener('pointerdown', () => { timer = setTimeout(showDiag, 800); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => h1.addEventListener(t, () => clearTimeout(timer)));
+    function showDiag() {
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;visibility:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)';
+      document.body.appendChild(probe);
+      const cs = getComputedStyle(probe);
+      const rows = [
+        ['Modus', navigator.standalone ? 'Home-Bildschirm' : 'Browser'],
+        ['innerHeight', window.innerHeight],
+        ['screen.height', screen.height],
+        ['App-Höhe', window.__appH],
+        ['Rand oben', cs.paddingTop],
+        ['Rand unten', cs.paddingBottom],
+        ['Spiel-Fuß unten', Math.round(document.querySelector('.game-foot').getBoundingClientRect().bottom)],
+      ];
+      probe.remove();
+      modal(`<h2>Diagnose</h2><div class="breakdown">${rows.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+        <button class="paper btn sheet-btn primary" data-act="ok">OK</button>`, {});
+    }
+  })();
+
   document.querySelectorAll('#tabbar .tab').forEach((t) => tap(t, () => {
     if (!t.classList.contains('active')) show(t.dataset.tab);
   }));
