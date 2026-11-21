@@ -65,17 +65,22 @@ const Paper = (() => {
     const teeth = Math.max(4, Math.round(w / 75));
     const step = w / teeth;
     // Beide Ränder beginnen bzw. enden in einem vollständigen Tal, damit keine Zacke angeschnitten wirkt
-    let d = `M0,${H} L0,${(28 + r() * 4).toFixed(1)}`;
+    const pts = [[0, 28 + r() * 4]];
     for (let i = 0; i < teeth; i++) {
       const x0 = i * step;
       const last = i === teeth - 1;
-      const peakX = x0 + step * (0.4 + r() * 0.2);
-      const peakY = 2 + r() * 7;
-      const valleyX = last ? w : x0 + step * (0.94 + r() * 0.12);
-      const valleyY = last ? 28 + r() * 4 : 26 + r() * 8;
-      d += ` L${peakX.toFixed(1)},${peakY.toFixed(1)} L${valleyX.toFixed(1)},${valleyY.toFixed(1)}`;
+      pts.push([x0 + step * (0.4 + r() * 0.2), 2 + r() * 7]);                       // Spitze
+      pts.push([last ? w : x0 + step * (0.94 + r() * 0.12), last ? 28 + r() * 4 : 26 + r() * 8]); // Tal
     }
-    d += ` L${w},${H} Z`;
+    // Spitzen und Täler leicht abrunden (kurze Kurve statt harter Ecke)
+    const R = 7;
+    let d = `M0,${H} L${pts[0][0]},${pts[0][1].toFixed(1)}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const a = toward(pts[i], pts[i - 1], R), b = toward(pts[i], pts[i + 1], R);
+      d += ` L${a[0]},${a[1]} Q${pts[i][0].toFixed(1)},${pts[i][1].toFixed(1)} ${b[0]},${b[1]}`;
+    }
+    const end = pts[pts.length - 1];
+    d += ` L${end[0]},${end[1].toFixed(1)} L${w},${H} Z`;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`;
     el.style.setProperty('--torn', svgUrl(svg));
   }

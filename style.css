@@ -753,3 +753,15 @@ html[data-theme="2"] .toast { --fill: #ffffff; }
 #menu .streak { display: inline-flex; margin-top: 14px; }
 .streak .grid-ico { fill: none; stroke: var(--paper); stroke-width: 2; width: 18px; height: 18px; }
 .streak-sep { width: 1.5px; height: 18px; margin: 0 4px; background: rgba(245, 243, 238, 0.3); border-radius: 1px; }
+
+/* Unteres Blatt liegt über allem: Beim Aufklappen schiebt sich die Auswahl über Logo und
+   Streak, statt sie nach oben zu verschieben */
+#menu { justify-content: flex-start; }
+.menu-bottom {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: auto;
+  margin: 0;
+  z-index: 3;
+}
+@media (max-height: 760px) { #menu.pick .logo { display: grid; } }
