@@ -94,7 +94,7 @@
     const pad = $('#numpad');
     for (let n = 1; n <= 9; n++) {
       const b = document.createElement('button');
-      b.className = 'key glass';
+      b.className = 'key paper';
       b.textContent = n;
       tap(b, () => input(n));
       pad.appendChild(b);
@@ -108,7 +108,7 @@
     const best = store.get(BEST_KEY) || {};
     LEVELS.forEach((L, idx) => {
       const b = document.createElement('button');
-      b.className = 'glass btn level';
+      b.className = 'paper btn level';
       b.innerHTML = `
         <span class="dot" style="background:${L.color};box-shadow:0 0 12px ${L.color}"></span>
         <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.desc}</span></span>
@@ -170,14 +170,14 @@
       `<div class="srow"><span>${label}</span><b>${value}</b></div>${extra}`;
 
     $('#statChips').innerHTML = LEVELS.map((L, i) =>
-      `<button class="chip" data-i="${i}"><span class="dot" style="background:${L.color}"></span>${L.name}</button>`).join('');
+      `<button class="paper chip" data-i="${i}"><span class="dot" style="background:${L.color}"></span>${L.name}</button>`).join('');
 
     $('#statSlides').innerHTML = LEVELS.map((L, i) => {
       const s = statOf(stats, i);
       const rate = s.started ? Math.round((s.solved / s.started) * 100) : 0;
       return `
         <div class="slide">
-          <div class="sgroup glass">
+          <div class="sgroup paper">
             <h3>Spiele</h3>
             ${row('Gestartete Spiele', s.started)}
             ${row('Gewonnene Spiele', s.solved)}
@@ -185,7 +185,7 @@
               `<div class="stat-bar"><span style="width:${rate}%;background:${L.color}"></span></div>`)}
             ${row('Fehlerfrei gewonnen', s.perfect)}
           </div>
-          <div class="sgroup glass">
+          <div class="sgroup paper">
             <h3>Rekorde</h3>
             ${row('Bestpunktzahl', best[i] || '–')}
             ${row('Beste Zeit', s.bestTime ? fmtTime(s.bestTime) : '–')}
@@ -229,8 +229,8 @@
   function requestNewGame(level) {
     if (store.get(SAVE_KEY)) {
       modal(`<h2>Neues Spiel?</h2><p>Dein pausiertes Spiel geht dabei verloren.</p>
-        <button class="btn sheet-btn primary" data-act="ok">Neues Spiel starten</button>
-        <button class="btn sheet-btn ghost" data-act="cancel">Abbrechen</button>`,
+        <button class="paper btn sheet-btn primary" data-act="ok">Neues Spiel starten</button>
+        <button class="paper btn sheet-btn ghost" data-act="cancel">Abbrechen</button>`,
         { ok: () => newGame(level) });
     } else newGame(level);
   }
@@ -565,8 +565,8 @@
           <div><span>Zeitbonus</span><b>+${timeBonus}</b></div>
           <div><span>Joker (${G.hints}×)</span><b class="neg">−${hintPenalty}</b></div>
         </div>
-        <button class="btn sheet-btn primary" data-act="again">Nochmal</button>
-        <button class="btn sheet-btn" data-act="menu">Hauptmenü</button>`,
+        <button class="paper btn sheet-btn primary" data-act="again">Nochmal</button>
+        <button class="paper btn sheet-btn" data-act="menu">Hauptmenü</button>`,
         { again: () => newGame(lvl), menu: () => { G = null; show('menu'); } }, false);
     }, waveTime + 350);
   }
@@ -596,10 +596,10 @@
     modal(`
       <h2>Spiel unterbrechen?</h2>
       <p class="muted">${LEVELS[G.level].name} · ${fmtTime(G.elapsed)}</p>
-      <button class="btn sheet-btn primary" data-act="pause">Pausieren</button>
-      <button class="btn sheet-btn" data-act="restart">Neu starten</button>
-      <button class="btn sheet-btn danger" data-act="quit">Beenden</button>
-      <button class="btn sheet-btn ghost" data-act="cancel">Weiterspielen</button>`,
+      <button class="paper btn sheet-btn primary" data-act="pause">Pausieren</button>
+      <button class="paper btn sheet-btn" data-act="restart">Neu starten</button>
+      <button class="paper btn sheet-btn danger" data-act="quit">Beenden</button>
+      <button class="paper btn sheet-btn ghost" data-act="cancel">Weiterspielen</button>`,
       {
         pause: () => { save(); G = null; show('menu'); },
         restart: () => restartGame(),

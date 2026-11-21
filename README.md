@@ -1,7 +1,11 @@
 # Sudoku – iPhone-Web-App (PWA) über GitHub Pages
 
-Dateien: `index.html` (Aufbau), `style.css` (Liquid-Glass-Design), `app.js` (Spiellogik),
-`sudoku.js` (Rätsel-Generator), `bg.js` (interaktiver Hintergrund), `sw.js` (Offline), `manifest.json`, `icons/`.
+Dateien: `index.html` (Aufbau), `style.css` (Papier-Design), `paper.js` (ungleichmäßige Papierformen
+und Risskanten), `app.js` (Spiellogik), `sudoku.js` (Rätsel-Generator), `bg.js` (gepunktetes Papier,
+füllt sich mit dem Fortschritt), `sw.js` (Offline), `manifest.json`, `icons/`.
+
+## Stil-Versionen
+Der frühere dunkle Liquid-Glass-Stil ist im Git-Tag `stil-liquid-glass` gespeichert.
 
 ## Online stellen
 1. Auf github.com ein neues **öffentliches** Repository anlegen (z. B. `meine-app`).
