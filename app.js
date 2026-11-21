@@ -138,42 +138,85 @@
   }
 
   // ---------- Statistik ----------
+  function statOf(stats, level) {
+    const s = Object.assign({ started: 0, solved: 0, perfect: 0, bestTime: 0, totalTime: 0 }, stats[level]);
+    s.started = Math.max(s.started, s.solved); // ältere Daten hatten noch keinen Start-Zähler
+    return s;
+  }
+  function recordStart(level) {
+    const stats = store.get(STATS_KEY) || {};
+    const s = statOf(stats, level);
+    s.started++;
+    stats[level] = s;
+    store.set(STATS_KEY, stats);
+  }
   function recordWin(g) {
     const stats = store.get(STATS_KEY) || {};
-    const s = stats[g.level] || { solved: 0, bestTime: 0, totalTime: 0, noHint: 0 };
+    const s = statOf(stats, g.level);
     s.solved++;
     s.totalTime += g.elapsed;
     if (!s.bestTime || g.elapsed < s.bestTime) s.bestTime = g.elapsed;
-    if (!g.hints) s.noHint++;
+    if (!g.mistakes) s.perfect++;
     stats[g.level] = s;
     store.set(STATS_KEY, stats);
   }
 
+  // Statistik: pro Schwierigkeit eine Seite, wischbar; oben die Stufen zum Antippen
+  let statIdx = 0;
   function buildStats() {
     const stats = store.get(STATS_KEY) || {};
     const best = store.get(BEST_KEY) || {};
-    const total = LEVELS.reduce((n, _, i) => n + ((stats[i] && stats[i].solved) || 0), 0);
-    const max = Math.max(1, ...LEVELS.map((_, i) => (stats[i] && stats[i].solved) || 0));
-    $('#statTotal').textContent = total;
-    $('#statList').innerHTML = LEVELS.map((L, i) => {
-      const s = stats[i] || { solved: 0 };
-      const avg = s.solved ? fmtTime(s.totalTime / s.solved) : '–';
+    const row = (label, value, extra = '') =>
+      `<div class="srow"><span>${label}</span><b>${value}</b></div>${extra}`;
+
+    $('#statChips').innerHTML = LEVELS.map((L, i) =>
+      `<button class="chip" data-i="${i}"><span class="dot" style="background:${L.color}"></span>${L.name}</button>`).join('');
+
+    $('#statSlides').innerHTML = LEVELS.map((L, i) => {
+      const s = statOf(stats, i);
+      const rate = s.started ? Math.round((s.solved / s.started) * 100) : 0;
       return `
-        <div class="stat-card glass">
-          <div class="stat-row">
-            <span class="dot" style="background:${L.color};box-shadow:0 0 10px ${L.color}"></span>
-            <span class="stat-name">${L.name}</span>
-            <span class="stat-count">${s.solved}</span>
+        <div class="slide">
+          <div class="sgroup glass">
+            <h3>Spiele</h3>
+            ${row('Gestartete Spiele', s.started)}
+            ${row('Gewonnene Spiele', s.solved)}
+            ${row('Gewinnrate', s.started ? rate + ' %' : '–',
+              `<div class="stat-bar"><span style="width:${rate}%;background:${L.color}"></span></div>`)}
+            ${row('Fehlerfrei gewonnen', s.perfect)}
           </div>
-          <div class="stat-bar"><span style="width:${(s.solved / max) * 100}%;background:${L.color}"></span></div>
-          <div class="stat-meta">
-            <span>Bestzeit <b>${s.bestTime ? fmtTime(s.bestTime) : '–'}</b></span>
-            <span>Ø <b>${avg}</b></span>
-            <span>Rekord <b>${best[i] || '–'}</b></span>
+          <div class="sgroup glass">
+            <h3>Rekorde</h3>
+            ${row('Bestpunktzahl', best[i] || '–')}
+            ${row('Beste Zeit', s.bestTime ? fmtTime(s.bestTime) : '–')}
+            ${row('Durchschnittszeit', s.solved ? fmtTime(s.totalTime / s.solved) : '–')}
           </div>
         </div>`;
     }).join('');
+
+    document.querySelectorAll('#statChips .chip').forEach((c) => tap(c, () => goStat(+c.dataset.i, true)));
+    requestAnimationFrame(() => goStat(statIdx, false));
   }
+
+  function goStat(i, smooth) {
+    const slides = $('#statSlides');
+    slides.scrollTo({ left: i * slides.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    markStat(i);
+  }
+  function markStat(i) {
+    statIdx = i;
+    document.querySelectorAll('#statChips .chip').forEach((c, k) => {
+      const on = k === i;
+      if (on && !c.classList.contains('active')) c.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      c.classList.toggle('active', on);
+    });
+  }
+  // Beim Wischen die passende Stufe oben markieren
+  $('#statSlides').addEventListener('scroll', () => {
+    const el = $('#statSlides');
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    if (i !== statIdx) markStat(i);
+  }, { passive: true });
 
   // Hauptmenü hat zwei Ansichten: Start-Ansicht und Schwierigkeitsauswahl
   function menuView(v) {
@@ -204,6 +247,7 @@
         scored: new Array(81).fill(0),
         mistakes: 0, hints: 0, score: 0, elapsed: 0,
       };
+      recordStart(level);
       $('#loading').classList.add('hidden');
       enterGame();
     }, 50);
@@ -220,6 +264,7 @@
     G.values = G.puzzle.slice();
     G.notes.fill(0); G.hint.fill(0); G.scored.fill(0);
     G.mistakes = 0; G.hints = 0; G.score = 0; G.elapsed = 0;
+    recordStart(G.level);
     enterGame();
   }
 
