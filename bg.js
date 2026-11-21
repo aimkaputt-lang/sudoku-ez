@@ -155,6 +155,7 @@ const Bg = (() => {
   return {
     setProgress(v) { target = clamp(v, 0, 1); },
     jump(v) { target = p = clamp(v, 0, 1); }, // sofort, ohne Übergang (zum Testen)
+    get hue() { return palette().hue; },
     ripple(x, y) { if (ripples.length < 8) ripples.push({ x, y, r: 4, life: 1 }); },
     burst(x, y, n = 14, hue) {
       const h = hue == null ? palette().hue : hue;

@@ -26,6 +26,9 @@
   let history = [];
   let running = false, lastTick = 0, lastSave = 0, timerId = 0, resumeOnVisible = false;
   const flashUntil = new Array(81).fill(0);
+  const flashDelay = new Array(81).fill(0);
+  const flashBig = new Array(81).fill(false);
+  let restartFlash = false;
 
   const boardEl = $('#board');
   const cells = [];
@@ -262,7 +265,7 @@
       if (!G.scored[i]) { G.scored[i] = 1; G.score += Math.round(10 * m); }
       placedCorrect(i, n);
     }
-    save(); render(); checkWin();
+    save(); render(); checkWin(i);
   }
 
   // Nach einer richtigen Zahl: Notizen bei Nachbarn entfernen, fertige Gruppen feiern
@@ -279,11 +282,29 @@
     }
     for (const grp of [rowCells, colCells, boxCells]) if (grp.every(correct)) groups.push(grp);
     Bg.burst(x, y, groups.length ? 26 : 12);
-    if (groups.length) {
-      const until = Date.now() + 700;
-      groups.flat().forEach((k) => (flashUntil[k] = until));
-      setTimeout(render, 720);
+    if (groups.length) wave(i, groups.flat(), false);
+  }
+
+  // Welle: startet am eingegebenen Feld und läuft von dort Feld für Feld nach außen.
+  // Reihe/Spalte: in beide Richtungen · Block und ganzes Spiel: ringförmig
+  const WAVE_STEP = 60, WAVE_LEN = 650;
+  function wave(origin, list, big) {
+    const r0 = rowOf(origin), c0 = colOf(origin), now = Date.now();
+    let maxDelay = 0;
+    for (const k of new Set(list)) {
+      const d = Math.max(Math.abs(rowOf(k) - r0), Math.abs(colOf(k) - c0));
+      const delay = d * WAVE_STEP;
+      // Liegt ein Feld in mehreren fertigen Gruppen, zählt die frühere Welle
+      if (flashUntil[k] > now && flashDelay[k] <= delay) continue;
+      flashDelay[k] = delay;
+      flashUntil[k] = now + delay + WAVE_LEN;
+      flashBig[k] = big;
+      maxDelay = Math.max(maxDelay, delay);
     }
+    document.documentElement.style.setProperty('--wave-hue', Math.round(Bg.hue));
+    restartFlash = true;
+    setTimeout(render, maxDelay + WAVE_LEN + 30);
+    return maxDelay + WAVE_LEN;
   }
 
   function erase() {
@@ -314,7 +335,7 @@
     G.scored[i] = 1;      // Joker-Felder bringen keine Punkte
     G.hints++;
     placedCorrect(i, G.solution[i]);
-    save(); render(); checkWin();
+    save(); render(); checkWin(i);
   }
 
   function toggleNotes() {
@@ -340,8 +361,15 @@
       if (i === sel) cls += ' selected';
       else if (sv && v === sv) cls += ' same';
       else if (rowOf(i) === sr || colOf(i) === sc) cls += ' related';
-      if (flashUntil[i] > now) cls += ' flash';
+      const flashing = flashUntil[i] > now;
+      if (flashing) cls += flashBig[i] ? ' flash big' : ' flash';
       if (el.classList.contains('shake') && v && v !== G.solution[i]) cls += ' shake';
+      // Neue Welle: Animation neu starten, auch wenn das Feld schon animiert war
+      if (flashing && restartFlash && el.classList.contains('flash')) {
+        el.classList.remove('flash');
+        void el.offsetWidth;
+      }
+      el.style.animationDelay = flashing ? flashDelay[i] + 'ms' : '';
       el.className = cls;
 
       const key = v ? 'v' + v : 'n' + G.notes[i] + '_' + sv;
@@ -359,6 +387,7 @@
       }
     }
 
+    restartFlash = false;
     for (let n = 1; n <= 9; n++) keys[n].classList.toggle('done', counts[n] >= 9);
     $('#score').textContent = G.score;
     $('#mistakes').textContent = G.mistakes;
@@ -372,8 +401,10 @@
   }
 
   // ---------- Spielende ----------
-  function checkWin() {
+  function checkWin(last) {
     for (let i = 0; i < 81; i++) if (G.values[i] !== G.solution[i]) return;
+    // Große Welle über das ganze Feld, ausgehend von der letzten Zahl
+    const waveTime = wave(last, [...Array(81).keys()], true);
     stopTimer();
     store.del(SAVE_KEY);
     const L = LEVELS[G.level];
@@ -405,7 +436,7 @@
         <button class="btn sheet-btn primary" data-act="again">Nochmal</button>
         <button class="btn sheet-btn" data-act="menu">Hauptmenü</button>`,
         { again: () => newGame(lvl), menu: () => { G = null; show('menu'); } }, false);
-    }, 900);
+    }, waveTime + 350);
   }
 
   // ---------- Dialoge ----------
