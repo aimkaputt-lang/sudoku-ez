@@ -44,6 +44,23 @@ const Snd = (() => {
     });
   }
 
+  // Weicher "Plopp" für Buttons: kurzer Sinus, der leicht nach unten gleitet, sanfter Einsatz
+  function pop(vol = 0.12, from = 620, to = 420) {
+    if (!enabled || !ensure()) return;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(from, t);
+    o.frequency.exponentialRampToValueAtTime(to, t + 0.06);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    o.connect(g).connect(master);
+    o.start(t);
+    o.stop(t + 0.1);
+  }
+
   // Kurzes Papier-Ticken: gefiltertes Rauschen
   let noiseBuf = null;
   function tick(vol = 0.25, freq = 2400) {
@@ -57,9 +74,9 @@ const Snd = (() => {
     const f = ctx.createBiquadFilter();
     const g = ctx.createGain();
     src.buffer = noiseBuf;
-    f.type = 'bandpass';
+    f.type = 'lowpass';        // nur die tiefen, weichen Anteile – kein scharfes Zischen
     f.frequency.value = freq;
-    f.Q.value = 1.2;
+    f.Q.value = 0.5;
     g.gain.value = vol;
     src.connect(f).connect(g).connect(master);
     src.start();
@@ -84,8 +101,8 @@ const Snd = (() => {
 
   return {
     setEnabled(v) { enabled = !!v; if (enabled) ensure(); },
-    tap() { tick(0.22, 2600); },                         // Buttons
-    soft() { tick(0.14, 1800); },                        // Notiz, Radieren, Rückgängig
+    tap() { pop(0.12); tick(0.05, 900); },               // Buttons: weicher Plopp + Hauch Papier
+    soft() { pop(0.07, 520, 380); },                     // Notiz, Radieren, Rückgängig
     digit(n) { marimba(NOTES[(n - 1) % 9], 0, 0.42); },   // richtige Zahl – Tonhöhe je Ziffer
     wrong() { thud(); },
     hint() { marimba(1318.51, 0, 0.3, 0.25); marimba(1760, 0.07, 0.25, 0.3); },
