@@ -132,14 +132,14 @@
       b.className = 'paper btn level' + (open ? '' : ' locked');
       const desc = open
         ? (L.label || L.clues + ' Startzahlen')
-        : `Gewinne 3× ${LEVELS[idx - 1].name} (${Math.min(winsOf(idx - 1), UNLOCK_WINS)}/${UNLOCK_WINS})`;
+        : `Gewinne ${UNLOCK_WINS - Math.min(winsOf(idx - 1), UNLOCK_WINS)}× ${LEVELS[idx - 1].name}`;
       b.innerHTML = `
         ${open
           ? `<span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>`
           : `<span class="lock-slot">${LOCK}</span>`}
         <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${desc}</span></span>
         <span class="level-best">${open && best[idx] ? STAR + best[idx] : ''}</span>`;
-      tap(b, () => (open ? requestNewGame(idx) : toast(`Erst 3× ${LEVELS[idx - 1].name} gewinnen`)));
+      tap(b, () => (open ? requestNewGame(idx) : toast(`Erst ${UNLOCK_WINS - Math.min(winsOf(idx - 1), UNLOCK_WINS)}× ${LEVELS[idx - 1].name} gewinnen`)));
       wrap.appendChild(b);
     });
     renderStreak();
