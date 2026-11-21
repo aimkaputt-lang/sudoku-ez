@@ -743,3 +743,13 @@ html[data-theme="2"] .toast { --fill: #ffffff; }
 /* Menü: Inhalt beginnt unter der oberen Leiste (Streak + Einstellungen) */
 #menu { padding-top: calc(env(safe-area-inset-top) + 60px); }
 @media (max-height: 760px) { #menu.pick .logo { display: none; } }
+
+/* Gesperrte Stufe: Schloss an der Stelle des Farbpunkts */
+.lock-slot { width: 20px; height: 20px; flex: none; display: flex; align-items: center; justify-content: center; }
+.lock-slot .lock { width: 20px; height: 20px; }
+
+/* Logo + Titel weiter oben, Streak direkt unter dem Titel */
+.menu-head { margin: 2vh 0 auto; }
+#menu .streak { display: inline-flex; margin-top: 14px; }
+.streak .grid-ico { fill: none; stroke: var(--paper); stroke-width: 2; width: 18px; height: 18px; }
+.streak-sep { width: 1.5px; height: 18px; margin: 0 4px; background: rgba(245, 243, 238, 0.3); border-radius: 1px; }

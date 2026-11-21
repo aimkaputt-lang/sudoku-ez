@@ -134,9 +134,11 @@
         ? (L.label || L.clues + ' Startzahlen')
         : `Gewinne 3× ${LEVELS[idx - 1].name} (${Math.min(winsOf(idx - 1), UNLOCK_WINS)}/${UNLOCK_WINS})`;
       b.innerHTML = `
-        <span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>
+        ${open
+          ? `<span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>`
+          : `<span class="lock-slot">${LOCK}</span>`}
         <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${desc}</span></span>
-        <span class="level-best">${!open ? LOCK : best[idx] ? STAR + best[idx] : ''}</span>`;
+        <span class="level-best">${open && best[idx] ? STAR + best[idx] : ''}</span>`;
       tap(b, () => (open ? requestNewGame(idx) : toast(`Erst 3× ${LEVELS[idx - 1].name} gewinnen`)));
       wrap.appendChild(b);
     });
@@ -200,7 +202,14 @@
     if (!s) return 0;
     return s.last === today() || s.last === yesterday() ? s.count : 0; // Lücke = Streak vorbei
   }
+  // Gewonnene Sudokus heute: { day, n }
+  const TODAY_KEY = 'sudoku-today-v1';
+  function todayCount() {
+    const t = store.get(TODAY_KEY);
+    return t && t.day === today() ? t.n : 0;
+  }
   function recordStreak() {
+    store.set(TODAY_KEY, { day: today(), n: todayCount() + 1 });
     const s = store.get(STREAK_KEY) || { last: '', count: 0 };
     if (s.last === today()) return s.count;
     s.count = s.last === yesterday() ? s.count + 1 : 1;
@@ -210,10 +219,12 @@
   }
   function renderStreak() {
     const n = currentStreak();
-    const s = store.get(STREAK_KEY);
+    const t = todayCount();
     $('#streakNum').textContent = n;
     $('#streakLabel').textContent = n === 1 ? 'Tag in Folge' : 'Tage in Folge';
-    $('#streak').classList.toggle('done-today', !!s && s.last === today());
+    $('#todayNum').textContent = t;
+    $('#todayLabel').textContent = 'heute';
+    $('#streak').classList.toggle('done-today', t > 0);
   }
 
   // ---------- Einstellungen ----------
@@ -252,11 +263,26 @@
     const row = (label, value, extra = '') =>
       `<div class="srow"><span>${label}</span><b>${value}</b></div>${extra}`;
 
-    $('#statChips').innerHTML = LEVELS.map((L, i) =>
-      `<button class="paper chip" data-i="${i}"><span class="dot" style="background:${L.color}"></span>${L.name}</button>`).join('');
+    // Erste Seite "Alle": Summe über alle Stufen
+    const per = LEVELS.map((_, i) => statOf(stats, i));
+    const all = per.reduce((a, s) => ({
+      started: a.started + s.started,
+      solved: a.solved + s.solved,
+      perfect: a.perfect + s.perfect,
+      totalTime: a.totalTime + s.totalTime,
+      bestTime: s.bestTime && (!a.bestTime || s.bestTime < a.bestTime) ? s.bestTime : a.bestTime,
+    }), { started: 0, solved: 0, perfect: 0, totalTime: 0, bestTime: 0 });
+    const bestAll = Math.max(0, ...LEVELS.map((_, i) => best[i] || 0));
+    const pages = [
+      { name: 'Alle', color: 'var(--ink)', s: all, best: bestAll },
+      ...LEVELS.map((L, i) => ({ name: L.name, color: L.color, s: per[i], best: best[i] })),
+    ];
 
-    $('#statSlides').innerHTML = LEVELS.map((L, i) => {
-      const s = statOf(stats, i);
+    $('#statChips').innerHTML = pages.map((P, i) =>
+      `<button class="paper chip" data-i="${i}"><span class="dot" style="background:${P.color}"></span>${P.name}</button>`).join('');
+
+    $('#statSlides').innerHTML = pages.map((P) => {
+      const s = P.s, L = { color: P.color };
       const rate = s.started ? Math.round((s.solved / s.started) * 100) : 0;
       return `
         <div class="slide">
@@ -270,7 +296,7 @@
           </div>
           <div class="sgroup paper">
             <h3>Rekorde</h3>
-            ${row('Bestpunktzahl', best[i] || '–')}
+            ${row('Bestpunktzahl', P.best || '–')}
             ${row('Beste Zeit', s.bestTime ? fmtTime(s.bestTime) : '–')}
             ${row('Durchschnittszeit', s.solved ? fmtTime(s.totalTime / s.solved) : '–')}
           </div>
