@@ -35,20 +35,19 @@
       <h1>Sudoku</h1>
     </div>
 
-    <!-- Start-Ansicht -->
-    <div class="menu-main">
-      <button id="startBtn" class="glass btn pill start">Neues Spiel</button>
+    <!-- Unten: Fortsetzen, darüber aufklappende Schwierigkeiten, darunter Neues Spiel / Abbrechen -->
+    <div class="menu-bottom">
       <button id="resumeBtn" class="glass btn pill resume hidden">
         <span class="resume-title">Fortsetzen</span>
         <span id="resumeInfo" class="resume-info"></span>
       </button>
-    </div>
-
-    <!-- Schwierigkeit wählen -->
-    <div class="menu-levels">
-      <p class="sub">Wähle deinen Schwierigkeitsgrad</p>
-      <div id="levels" class="levels"></div>
-      <button id="levelsBack" class="btn pill ghost-pill">Zurück</button>
+      <div class="drop">
+        <div class="drop-inner">
+          <p class="sub">Schwierigkeit wählen</p>
+          <div id="levels" class="levels"></div>
+        </div>
+      </div>
+      <button id="startBtn" class="glass btn pill start">Neues Spiel</button>
     </div>
   </section>
 

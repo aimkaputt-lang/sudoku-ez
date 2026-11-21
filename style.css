@@ -113,11 +113,12 @@ svg {
 
 /* ---------- Menü ---------- */
 #menu {
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   gap: 14px;
 }
-.menu-head { text-align: center; margin-bottom: 10px; }
+/* Titel mittig im freien Platz – rutscht beim Aufklappen mit nach oben */
+.menu-head { text-align: center; margin: auto 0; }
 .logo {
   width: 88px; height: 88px;
   margin: 0 auto 16px;
@@ -137,20 +138,41 @@ svg {
 h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
 .sub { color: var(--muted); margin-top: 4px; font-size: 15px; }
 
-/* Zwei Ansichten im Menü: Start ↔ Schwierigkeit */
-.menu-main, .menu-levels {
+/* Unterer Bereich: Button sitzt unten, die Auswahl klappt direkt darüber nach oben auf */
+.menu-bottom {
   width: min(100%, 380px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 8px;
 }
-.menu-levels { display: none; }
-#menu.pick .menu-main { display: none; }
-#menu.pick .menu-levels { display: flex; animation: slide-in 0.3s ease; }
-#menu:not(.pick) .menu-main { animation: slide-in 0.3s ease; }
-@keyframes slide-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.drop {
+  display: grid;
+  grid-template-rows: 0fr;               /* zu: Höhe 0 */
+  opacity: 0;
+  transform: translateY(16px);
+  transition: grid-template-rows 0.42s cubic-bezier(.3, 1.2, .4, 1), opacity 0.3s ease, transform 0.42s cubic-bezier(.3, 1.2, .4, 1);
+  pointer-events: none;
+  margin-bottom: -10px;                  /* klebt am Button */
+}
+.drop-inner { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.drop-inner .sub { text-align: center; margin: 0 0 2px; }
+#menu.pick .drop {
+  grid-template-rows: 1fr;               /* auf: volle Höhe, wächst nach oben */
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  margin-bottom: 0;
+}
+.drop .levels { padding-bottom: 2px; }
+.menu-bottom .resume { max-height: 90px; overflow: hidden; transition: opacity 0.25s, transform 0.25s, max-height 0.35s, padding 0.35s, margin 0.35s; }
+#menu.pick .resume { opacity: 0; transform: scale(0.95); pointer-events: none; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: -10px; }
+.drop .btn.level { padding: 12px 22px; }
+
+/* "Neues Spiel" wird zu "Abbrechen" */
+.btn.start { transition: background 0.3s, color 0.3s, transform 0.15s cubic-bezier(.3,1.6,.5,1); }
+#menu.pick .btn.start { background: rgba(255, 255, 255, 0.04); color: var(--muted); }
 
 .pill { border-radius: 999px !important; }
 .btn.start {
@@ -159,11 +181,6 @@ h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
   font-size: 19px;
   font-weight: 700;
   background: rgba(124, 156, 255, 0.28);
-}
-.ghost-pill {
-  padding: 12px 28px;
-  color: var(--muted);
-  font-weight: 600;
 }
 
 .levels { display: flex; flex-direction: column; gap: 10px; width: 100%; }

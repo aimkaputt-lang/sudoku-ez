@@ -131,7 +131,9 @@
 
   // Hauptmenü hat zwei Ansichten: Start-Ansicht und Schwierigkeitsauswahl
   function menuView(v) {
-    $('#menu').classList.toggle('pick', v === 'levels');
+    const open = v === 'levels';
+    $('#menu').classList.toggle('pick', open);
+    $('#startBtn').textContent = open ? 'Abbrechen' : 'Neues Spiel';
   }
 
   // ---------- Spielstart ----------
@@ -521,8 +523,7 @@
   tap($('#hintBtn'), useHint);
   tap($('#notesBtn'), toggleNotes);
   tap($('#resumeBtn'), resumeGame);
-  tap($('#startBtn'), () => menuView('levels'));
-  tap($('#levelsBack'), () => menuView('main'));
+  tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
   document.addEventListener('pointerdown', (e) => Bg.ripple(e.clientX, e.clientY));
 
   // Tastatur (für den PC)
