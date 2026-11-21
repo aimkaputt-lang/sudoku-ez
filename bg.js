@@ -1,14 +1,16 @@
-// Hintergrund im Papier-Stil: gepunktetes Papier, das mit dem Fortschritt die Farbe wechselt.
+// Hintergrund im Papier-Stil: gepunktetes Papier in der Farbe des Themas.
 //
-// Immer nur EINE Farbe auf einmal – Fläche und Punkte zusammen. Die Punkte sind dabei
-// immer etwas dunkler als die Fläche.
+// Jede Schwierigkeitsstufe hat ein eigenes Farbthema (siehe auch style.css, data-theme).
+// Während des Spiels bleibt die Farbe gleich. Fläche und Punkte gehören zusammen,
+// die Punkte sind immer etwas dunkler als die Fläche.
 //
-//   0 – 25 %   Papier (creme)
-//  25 – 50 %   Rot    #e2104c
-//  50 – 75 %   Grün   #4fc96b
-//  75 – 100 %  Lila   #c083dd
+//   0 Kinderleicht    Papier (creme) – auch Menü und Statistik
+//   1 Mittelschlecht  Grün   #4fc96b
+//   2 Der Profi       Gelb   #efdd73
+//   3 Gehirnjogging   Lila   #c083dd
+//   4 Traumatherapie  Rot    #e2104c
 //
-// Der Wechsel passiert weich über etwa eine Sekunde. Im Notizmodus wird alles grauer.
+// Der Wechsel zwischen Themen gleitet weich. Im Notizmodus wird alles grauer.
 const Bg = (() => {
   const cv = document.getElementById('bg');
   const ctx = cv.getContext('2d');
@@ -21,22 +23,18 @@ const Bg = (() => {
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
 
-  const STAGES = [
-    { at: 0.00, color: [245, 243, 238] }, // Papier
-    { at: 0.25, color: [226, 16, 76] },   // Rot
-    { at: 0.50, color: [79, 201, 107] },  // Grün
-    { at: 0.75, color: [192, 131, 221] }, // Lila
+  const THEMES = [
+    [245, 243, 238], // Papier
+    [79, 201, 107],  // Grün
+    [239, 221, 115], // Gelb
+    [192, 131, 221], // Lila
+    [226, 16, 76],   // Rot
   ];
   const DOT_DARKEN = 0.9;  // Punkte = Fläche × 0.9 (etwas dunkler)
   const SPARK_DARKEN = 0.55;
 
-  function stageOf(v) {
-    let s = 0;
-    for (let i = 0; i < STAGES.length; i++) if (v >= STAGES[i].at) s = i;
-    return s;
-  }
   let stage = 0;
-  let cur = STAGES[0].color.slice();   // aktuell gezeigte Farbe (gleitet zur Zielfarbe)
+  let cur = THEMES[0].slice();   // aktuell gezeigte Farbe (gleitet zur Zielfarbe)
 
   const toGrey = (c, g) => {
     const l = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
@@ -68,14 +66,8 @@ const Bg = (() => {
   const parts = [];
   const ripples = [];
 
-  function setStage(s) {
-    if (s === stage) return;
-    stage = s;
-    document.documentElement.dataset.bg = s; // für lesbare Texte auf farbigem Grund (style.css)
-  }
-
   function frame() {
-    const goal = STAGES[stage].color;
+    const goal = THEMES[stage];
     let moving = false;
     for (let i = 0; i < 3; i++) {
       const d = goal[i] - cur[i];
@@ -136,12 +128,12 @@ const Bg = (() => {
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
   resize();
-  document.documentElement.dataset.bg = 0;
   start();
 
   return {
-    setProgress(v) { target = clamp(v, 0, 1); setStage(stageOf(target)); },
-    jump(v) { target = clamp(v, 0, 1); setStage(stageOf(target)); cur = STAGES[stage].color.slice(); dirty = true; },
+    setProgress(v) { target = clamp(v, 0, 1); },   // Farbe hängt nicht mehr am Fortschritt
+    setTheme(i) { stage = clamp(i | 0, 0, THEMES.length - 1); },
+    jump(i) { stage = clamp(i | 0, 0, THEMES.length - 1); cur = THEMES[stage].slice(); dirty = true; },
     get hue() { return 0; },
     setGrey(on) { greyTarget = on ? 1 : 0; },
     ripple(x, y) { if (ripples.length < 6) ripples.push({ x, y, r: 3, life: 1 }); },

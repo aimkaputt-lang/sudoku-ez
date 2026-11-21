@@ -19,6 +19,13 @@
   --on-dark: #f5f3ee;
   --on-dark-muted: rgba(245, 243, 238, 0.6);
   --text: var(--ink);
+  /* Themen-Farben (Standard = Papier). Pro Stufe überschrieben, siehe unten "Farbthemen" */
+  --card: #ffffff;          /* Papierstücke im Spiel (Rahmen, Tasten, Timer …) */
+  --cell: #ffffff;          /* Zellen */
+  --cell-related: #f0ede5;  /* Zeile + Spalte */
+  --cell-same: #d9e2f7;     /* gleiche Zahl */
+  --cell-sel: #1d1d1b;      /* ausgewähltes Feld */
+  --sheet: #1d1d1b;         /* dunkles Blatt unten */
   --key-h: clamp(38px, 5.6dvh, 54px);   /* Höhe der Zahlentasten */
   --fixed-h: 240px;                    /* alles im Spiel außer Spielfeld und Zahlenreihen */
   --font: "M PLUS Rounded 1c", ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -79,11 +86,13 @@ svg {
 }
 .paper::before { background: var(--fill); z-index: -1; transition: background 0.2s; }
 .paper::after { background: var(--shade); z-index: -2; transform: translate(2px, 3px); }
+/* Im Spiel nehmen alle Papierstücke die Kartenfarbe des Themas an */
+:where(#game, #modal) .paper, :where(#modal) .sheet { --fill: var(--card); }
 
 /* ---------- Dunkles, gerissenes Blatt ---------- */
 .sheet-dark {
   position: relative;
-  background: var(--ink);
+  background: var(--sheet);
   color: var(--on-dark);
   --torn-h: 38px;
 }
@@ -93,7 +102,7 @@ svg {
   left: 0; right: 0;
   top: calc(var(--torn-h) * -1 + 1px);
   height: var(--torn-h);
-  background: var(--ink);
+  background: var(--sheet);
   -webkit-mask: var(--torn) 0 0 / 100% 100% no-repeat;
   mask: var(--torn) 0 0 / 100% 100% no-repeat;
 }
@@ -340,8 +349,8 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 .label { font-size: 12px; color: var(--muted); font-weight: 800; }
 .label.err { color: var(--wrong); }
 /* Auf farbigem Hintergrund (Rot/Grün/Lila) Beschriftungen dunkel statt grau bzw. rot */
-html:not([data-bg="0"]) .stats .label { color: rgba(29, 29, 27, 0.72); }
-html[data-bg="1"] .stats .label.err { color: var(--ink); }
+html:not([data-theme="0"]) .stats .label { color: rgba(29, 29, 27, 0.72); }
+html[data-theme="4"] .stats .label.err { color: var(--ink); }
 .value { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .timer { padding: 7px 18px; --radius: 999px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
@@ -389,7 +398,7 @@ html[data-bg="1"] .stats .label.err { color: var(--ink); }
   min-height: 0;
   overflow: hidden;
   --tint: transparent;
-  background: linear-gradient(var(--tint), var(--tint)), var(--white);
+  background: linear-gradient(var(--tint), var(--tint)), var(--cell);
   cursor: pointer;
 }
 .val { font-size: 6.4cqw; font-weight: 500; line-height: 1; }
@@ -399,9 +408,9 @@ html[data-bg="1"] .stats .label.err { color: var(--ink); }
 .cell.wrong .val { color: var(--wrong); }
 .cell.wrong { --tint: rgba(226, 16, 76, 0.1); }
 
-.cell.related { --tint: #f0ede5; }
-.cell.same { --tint: #d9e2f7; }
-.cell.selected { --tint: var(--ink); }
+.cell.related { --tint: var(--cell-related); }
+.cell.same { --tint: var(--cell-same); }
+.cell.selected { --tint: var(--cell-sel); }
 .cell.selected .val { color: var(--white); }
 .cell.wrong.selected { --tint: var(--wrong); }
 
@@ -579,3 +588,58 @@ html[data-bg="1"] .stats .label.err { color: var(--ink); }
 /* Im Spiel: mittig über dem Spielfeld, als kleiner schräger Zettel */
 .toast.on-board { --shade: rgba(29, 29, 27, 0.25); transform: translate(-50%, calc(-50% + 12px)) rotate(-1.5deg); }
 .toast.on-board.show { transform: translate(-50%, -50%) rotate(-1.5deg); }
+
+/* =========================================================
+   Farbthemen pro Schwierigkeitsgrad (nur im Spiel aktiv)
+   html[data-theme] setzt app.js; der Hintergrund kommt aus bg.js
+   ========================================================= */
+/* 1 Mittelschlecht – Grün */
+html[data-theme="1"] {
+  --card: #f2fbf4;
+  --cell: #fbfefc;
+  --cell-related: #def3e4;
+  --cell-same: #b5e6c2;
+  --cell-sel: #1e5a30;
+  --line: #b4d9be;
+  --accent: #1f7a3c;
+  --sheet: #17311f;
+  --marker: #efdd73;
+}
+/* 2 Der Profi – Gelb */
+html[data-theme="2"] {
+  --card: #fffbe8;
+  --cell: #fffef7;
+  --cell-related: #faf1c8;
+  --cell-same: #f1df8c;
+  --cell-sel: #5c4d0c;
+  --line: #e2d59a;
+  --accent: #8f6f00;
+  --sheet: #332c0f;
+  --marker: #c083dd;
+}
+/* 3 Gehirnjogging – Lila */
+html[data-theme="3"] {
+  --card: #f8f0fc;
+  --cell: #fdfaff;
+  --cell-related: #eee0f6;
+  --cell-same: #d9bceb;
+  --cell-sel: #4b2a5e;
+  --line: #dac6e6;
+  --accent: #7b3fa0;
+  --sheet: #2a1b33;
+  --marker: #efdd73;
+}
+/* 4 Traumatherapie – Rot (eigene Zahlen blau, damit sie nicht wie Fehler aussehen) */
+html[data-theme="4"] {
+  --card: #fdeef2;
+  --cell: #fff8fa;
+  --cell-related: #fbdde5;
+  --cell-same: #f5b5c6;
+  --cell-sel: #6e0824;
+  --line: #eec3ce;
+  --accent: #2f5bd3;
+  --sheet: #33060f;
+  --marker: #efdd73;
+}
+/* Gelbes Thema: Meldungen weiß statt gelb, damit sie sich abheben */
+html[data-theme="2"] .toast { --fill: #ffffff; }

@@ -3,10 +3,11 @@
 
   // ---------- Einstellungen ----------
   const LEVELS = [
-    { name: 'Kinderleicht',   desc: 'Zum Aufwärmen',          clues: 46, mult: 1,   par: 8,  color: '#4ade80' },
-    { name: 'Mittelschlecht', desc: 'Ein bisschen Denken',    clues: 38, mult: 1.5, par: 12, color: '#a3e635' },
-    { name: 'Der Profi',      desc: 'Für Kenner',             clues: 32, mult: 2,   par: 18, color: '#facc15' },
-    { name: 'Gehirnjogging',  desc: 'Ab jetzt wird’s ernst',  clues: 27, mult: 3,   par: 25, color: '#fb923c' },
+    // color = Farbe des Themas dieser Stufe (Hintergrund im Spiel, Punkt im Menü)
+    { name: 'Kinderleicht',   desc: 'Zum Aufwärmen',          clues: 46, mult: 1,   par: 8,  color: '#cfc6b0' },
+    { name: 'Mittelschlecht', desc: 'Ein bisschen Denken',    clues: 38, mult: 1.5, par: 12, color: '#4fc96b' },
+    { name: 'Der Profi',      desc: 'Für Kenner',             clues: 32, mult: 2,   par: 18, color: '#efdd73' },
+    { name: 'Gehirnjogging',  desc: 'Ab jetzt wird’s ernst',  clues: 27, mult: 3,   par: 25, color: '#c083dd' },
     { name: 'Traumatherapie', desc: 'Viel Glück.',            clues: 23, mult: 4,   par: 35, color: '#e2104c' },
   ];
   const SAVE_KEY = 'sudoku-save-v1';
@@ -129,7 +130,11 @@
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
     if (id === 'menu') { buildMenu(); menuView('main'); }
     if (id === 'stats') buildStats();
-    if (id !== 'game') { Bg.setProgress(0); Bg.setGrey(false); }
+    // Farbthema: im Spiel das der Stufe, sonst Papier
+    const theme = id === 'game' && G ? G.level : 0;
+    document.documentElement.dataset.theme = theme;
+    Bg.setTheme(theme);
+    if (id !== 'game') Bg.setGrey(false);
     // Leiste unten nur auf Menü und Statistik
     const bar = $('#tabbar');
     bar.classList.toggle('hidden-bar', id === 'game');
@@ -603,7 +608,7 @@
     modal(`
       <h2>Spiel unterbrechen?</h2>
       <p class="muted">${LEVELS[G.level].name} · ${fmtTime(G.elapsed)}</p>
-      <button class="paper btn sheet-btn primary" data-act="pause">Pausieren</button>
+      <button class="paper btn sheet-btn primary" data-act="pause">Hauptmenü</button>
       <button class="paper btn sheet-btn" data-act="restart">Neu starten</button>
       <button class="paper btn sheet-btn danger" data-act="quit">Beenden</button>
       <button class="paper btn sheet-btn ghost" data-act="cancel">Weiterspielen</button>`,
