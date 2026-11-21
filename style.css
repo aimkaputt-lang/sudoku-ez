@@ -19,15 +19,21 @@
   --on-dark: #f5f3ee;
   --on-dark-muted: rgba(245, 243, 238, 0.6);
   --text: var(--ink);
+  --key-h: clamp(38px, 5.6dvh, 54px);   /* Höhe der Zahlentasten */
+  --fixed-h: 240px;                    /* alles im Spiel außer Spielfeld und Zahlenreihen */
   --font: "M PLUS Rounded 1c", ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  /* Falls unten irgendwo Platz frei bleibt (z. B. hinter Safari-Leisten),
+     ist er schwarz wie das untere Blatt statt leer */
+  background: linear-gradient(var(--paper) 50%, var(--ink) 50%);
+}
 html, body {
   height: 100%;
   overflow: hidden;
-  background: var(--paper);
   color: var(--ink);
   font-family: var(--font);
   overscroll-behavior: none;
@@ -336,7 +342,10 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
 /* ---------- Spielfeld ---------- */
 /* Spielfeld gerade (nicht schräg) und so groß wie möglich: fast bildschirmbreit */
 .board-wrap {
-  width: min(calc(100% + 16px), 54dvh, 560px);
+  /* Breite = so breit wie möglich, aber nie höher als der Platz, der neben Kopf,
+     Werkzeugen und Zahlen übrig bleibt – so passt alles auf jedes iPhone */
+  width: min(calc(100% + 16px), 560px,
+    calc(100dvh - var(--fixed-h) - 3 * var(--key-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   margin: 0 -8px;
   aspect-ratio: 1;
   flex: none;
@@ -455,7 +464,7 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
   gap: 8px 14px;
 }
 .key {
-  height: clamp(36px, 5.6dvh, 54px);
+  height: var(--key-h);
   --radius: 999px;
   font-size: clamp(21px, 3.4dvh, 30px);
   font-weight: 700;
