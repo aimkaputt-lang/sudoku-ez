@@ -354,6 +354,13 @@
   function toast(msg) {
     const t = $('#toast');
     t.textContent = msg;
+    // Im Spiel liegt die Meldung mittig über dem Spielfeld, sonst unten
+    const inGame = $('#game').classList.contains('active');
+    t.classList.toggle('on-board', inGame);
+    if (inGame) {
+      const r = $('.board-wrap').getBoundingClientRect();
+      t.style.top = Math.round(r.top + r.height / 2) + 'px';
+    } else t.style.top = '';
     t.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 1800);

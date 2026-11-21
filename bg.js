@@ -2,8 +2,8 @@
 //
 // Die Punkte sitzen in einem lockeren Raster, jeder leicht versetzt und unterschiedlich groß,
 // damit es nach echtem Papier aussieht. Mit dem Spielfortschritt (0..1) werden nach und nach
-// zufällige Punkte "eingefärbt" – wie mit Tinte ausgemalt. Die Tintenfarbe wandert dabei
-// langsam von Blau über Violett zu Pink.
+// zufällige Punkte "eingefärbt" – wie mit Tinte ausgemalt. Jeder Punkt hat eine feste Farbe
+// (Rot #e2104c, Grün #4fc96b oder Lila #c083dd), die sich nicht mehr ändert.
 // Im Notizmodus wird alles grauer.
 const Bg = (() => {
   const cv = document.getElementById('bg');
@@ -21,19 +21,19 @@ const Bg = (() => {
   const PAPER_GREY = [234, 233, 230];
   const DOT = [226, 223, 216];
 
-  // Tintenfarbe nach Fortschritt
-  const INK = [
-    { at: 0.0, hue: 222 },
-    { at: 0.5, hue: 268 },
-    { at: 1.0, hue: 330 },
+  // Feste Tintenfarben: jeder Punkt bekommt eine davon und behält sie
+  const INKS = [
+    [226, 16, 76],   // #e2104c Rot
+    [79, 201, 107],  // #4fc96b Grün
+    [192, 131, 221], // #c083dd Lila
   ];
-  function inkHue() {
-    for (let i = 0; i < INK.length - 1; i++) {
-      const a = INK[i], b = INK[i + 1];
-      if (p <= b.at) return lerp(a.hue, b.hue, (p - a.at) / (b.at - a.at));
-    }
-    return INK[INK.length - 1].hue;
-  }
+  const mixRgb = (a, b, t) => a.map((v, i) => Math.round(lerp(v, b[i], t)));
+  const toGrey = (c, g) => {
+    const l = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+    return c.map((v) => Math.round(lerp(v, l, g)));
+  };
+  // für die Welle in app.js (wird dort nicht mehr für Farben genutzt)
+  function inkHue() { return 0; }
 
   // Zufall mit festem Startwert, damit das Punktmuster immer gleich aussieht
   function rng(seed) {
@@ -55,8 +55,8 @@ const Bg = (() => {
           x: x + (r() - 0.5) * 5,
           y: y + (r() - 0.5) * 5,
           s: 1.6 + r() * 1.6,
-          rank: r(),           // ab welchem Fortschritt der Punkt eingefärbt wird
-          tint: r() * 40 - 20, // kleine Farbabweichung pro Punkt
+          rank: r(),                     // ab welchem Fortschritt der Punkt eingefärbt wird
+          ink: INKS[Math.floor(r() * 3)], // feste Farbe des Punkts
         });
       }
     }
@@ -78,8 +78,6 @@ const Bg = (() => {
       ctx.fillStyle = `rgb(${paper})`;
       ctx.fillRect(0, 0, W, H);
 
-      const hue = inkHue();
-      const sat = 60 * (1 - grey);
       for (const d of dots) {
         const ink = clamp((p - d.rank * 0.98) * 14, 0, 1);
         ctx.beginPath();
@@ -87,7 +85,8 @@ const Bg = (() => {
           ctx.fillStyle = `rgb(${DOT})`;
           ctx.arc(d.x, d.y, d.s, 0, Math.PI * 2);
         } else {
-          ctx.fillStyle = `hsla(${hue + d.tint},${sat}%,${lerp(86, 58, ink)}%,1)`;
+          // vom grauen Punkt weich zur festen Farbe; im Notizmodus wieder grau
+          ctx.fillStyle = `rgb(${toGrey(mixRgb(DOT, d.ink, ink), grey)})`;
           ctx.arc(d.x, d.y, d.s * (1 + ink * 0.45), 0, Math.PI * 2);
         }
         ctx.fill();
@@ -101,7 +100,7 @@ const Bg = (() => {
         q.vx *= 0.9; q.vy *= 0.9;
         q.x += q.vx; q.y += q.vy;
         const a = Math.min(1, q.life / q.max * 1.6);
-        ctx.fillStyle = `hsla(${q.hue},${sat + 10}%,45%,${a * 0.85})`;
+        ctx.fillStyle = `rgba(${toGrey(q.color, grey)},${a * 0.9})`;
         ctx.beginPath();
         ctx.arc(q.x, q.y, q.size, 0, Math.PI * 2);
         ctx.fill();
@@ -138,19 +137,18 @@ const Bg = (() => {
     setGrey(on) { greyTarget = on ? 1 : 0; },
     ripple(x, y) { if (ripples.length < 6) ripples.push({ x, y, r: 3, life: 1 }); },
     burst(x, y, n = 12, hue) {
-      const h = hue == null ? inkHue() : hue;
+      // Tintenspritzer in den drei festen Farben
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
         parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-          hue: h + Math.random() * 30 - 15, size: 1.2 + Math.random() * 2.6,
+          color: INKS[Math.floor(Math.random() * 3)], size: 1.2 + Math.random() * 2.6,
           life: 0.6 + Math.random() * 0.5, max: 1.1 });
       }
     },
     celebrate() {
       target = 1;
       for (let k = 0; k < 6; k++) {
-        setTimeout(() => this.burst(W * (0.15 + Math.random() * 0.7), H * (0.12 + Math.random() * 0.45),
-          36, [222, 268, 330, 300, 245, 340][k]), k * 200);
+        setTimeout(() => this.burst(W * (0.15 + Math.random() * 0.7), H * (0.12 + Math.random() * 0.45), 36), k * 200);
       }
     },
   };

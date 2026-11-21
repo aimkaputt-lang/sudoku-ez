@@ -572,3 +572,6 @@ h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
   transition: opacity 0.25s, transform 0.25s;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* Im Spiel: mittig über dem Spielfeld, als kleiner schräger Zettel */
+.toast.on-board { --shade: rgba(29, 29, 27, 0.25); transform: translate(-50%, calc(-50% + 12px)) rotate(-1.5deg); }
+.toast.on-board.show { transform: translate(-50%, -50%) rotate(-1.5deg); }
