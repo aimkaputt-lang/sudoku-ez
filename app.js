@@ -617,7 +617,7 @@
         <svg viewBox="0 0 24 24"><path d="M3.5 10.5L12 3.5l8.5 7"/><path d="M5.5 9v11h13V9"/><path d="M10 20v-6h4v6"/></svg>Hauptmenü</button>
       <button class="paper btn sheet-btn" data-act="restart">
         <svg viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 3.5v5h5"/></svg>Neustarten</button>
-      <button class="paper btn sheet-btn danger" data-act="quit">
+      <button class="paper btn sheet-btn ghost danger" data-act="quit">
         <svg viewBox="0 0 24 24"><path d="M5 21V3.5"/><path d="M5 4l13 4.5L5 13z"/></svg>Aufgeben</button>`,
       {
         pause: () => { save(); G = null; show('menu'); },

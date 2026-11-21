@@ -532,6 +532,7 @@ html[data-theme="4"] .stats .label.err { color: var(--ink); }
 .sheet-btn.primary { --fill: var(--ink); color: var(--on-dark); }
 .sheet-btn.danger { color: var(--wrong); }
 .sheet-btn.ghost { --fill: transparent; color: var(--muted); }
+.sheet-btn.ghost.danger { color: var(--wrong); }
 /* Buttons mit Symbol: Symbol links neben dem Text */
 .sheet-btn { display: flex; align-items: center; justify-content: center; gap: 9px; }
 /* Pause-Dialog: helle Buttons im Ton der Themenfarbe (wie Zeile/Spalte im Feld) */
