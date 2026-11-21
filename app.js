@@ -34,7 +34,8 @@
   // Ein Button löst erst beim Loslassen aus, und nur wenn der Finger noch darauf ist.
   // Zieht man den Finger herunter, wird der Druck abgebrochen (falls man sich vertippt hat).
   const SLOP = 12; // Pixel Spielraum am Rand
-  function tap(el, fn) {
+  function tap(el, fn, silent = false) {
+    const run = (e) => { if (!silent) Snd.tap(); fn(e); };
     let id = null;
     const inside = (e) => {
       const r = el.getBoundingClientRect();
@@ -55,11 +56,11 @@
       if (e.pointerId !== id) return;
       const ok = inside(e);
       end();
-      if (ok) fn(e);
+      if (ok) run(e);
     });
     el.addEventListener('pointercancel', end);
     // Tastatur (Enter / Leertaste) am PC
-    el.addEventListener('click', (e) => { if (e.detail === 0) fn(e); });
+    el.addEventListener('click', (e) => { if (e.detail === 0) run(e); });
   }
 
   // ---------- Zustand ----------
@@ -106,7 +107,7 @@
       const b = document.createElement('button');
       b.className = 'key paper';
       b.textContent = n;
-      tap(b, () => input(n));
+      tap(b, () => input(n), true); // eigener Ton je nach richtig/falsch
       pad.appendChild(b);
       keys[n] = b;
     }
@@ -230,8 +231,8 @@
   // ---------- Einstellungen ----------
   const SETTINGS_KEY = 'sudoku-settings-v1';
   const ERROR_LIMIT = 3;
-  function settings() { return Object.assign({ timer: true, errorLimit: false }, store.get(SETTINGS_KEY)); }
-  function setSetting(k, v) { const s = settings(); s[k] = v; store.set(SETTINGS_KEY, s); }
+  function settings() { return Object.assign({ timer: true, errorLimit: false, sound: true }, store.get(SETTINGS_KEY)); }
+  function setSetting(k, v) { const s = settings(); s[k] = v; store.set(SETTINGS_KEY, s); if (k === 'sound') Snd.setEnabled(v); }
 
   function settingsDialog() {
     const s = settings();
@@ -245,6 +246,7 @@
       <div class="settings">
         ${sw('timer', 'Timer', 'Zeit im Spiel anzeigen')}
         ${sw('errorLimit', 'Fehlerlimit', `Nach ${ERROR_LIMIT} Fehlern ist das Spiel vorbei`)}
+        ${sw('sound', 'Sounds', 'Töne beim Spielen')}
       </div>`, {});
     document.querySelectorAll('#sheet .setting').forEach((b) => tap(b, () => {
       const key = b.dataset.key;
@@ -493,6 +495,7 @@
       if (G.values[i]) return;
       pushHistory();
       G.notes[i] ^= 1 << n;
+      Snd.soft();
       save(); render();
       return;
     }
@@ -505,12 +508,14 @@
 
     if (n !== G.solution[i]) {
       G.mistakes++;
+      Snd.wrong();
       G.score = Math.max(0, G.score - Math.round(5 * m));
       cells[i].classList.remove('shake');
       void cells[i].offsetWidth;
       cells[i].classList.add('shake');
     } else {
       if (!G.scored[i]) { G.scored[i] = 1; G.score += Math.round(10 * m); }
+      Snd.digit(n);
       placedCorrect(i, n);
     }
     save(); render(); checkWin(i);
@@ -519,6 +524,7 @@
 
   // Fehlerlimit erreicht: Spiel vorbei (zählt als gestartet, nicht gewonnen)
   function gameOver() {
+    setTimeout(() => Snd.lose(), 250);
     stopTimer();
     store.del(SAVE_KEY);
     const lvl = G.level;
@@ -546,7 +552,7 @@
     }
     for (const grp of [rowCells, colCells, boxCells]) if (grp.every(correct)) groups.push(grp);
     Bg.burst(x, y, groups.length ? 26 : 12);
-    if (groups.length) wave(i, groups.flat(), false);
+    if (groups.length) { wave(i, groups.flat(), false); setTimeout(() => Snd.group(groups.length), 90); }
   }
 
   // Welle: startet am eingegebenen Feld und läuft von dort Feld für Feld nach außen.
@@ -578,6 +584,7 @@
     if (!G.values[i] && !G.notes[i]) return;
     pushHistory();
     if (G.values[i]) G.values[i] = 0; else G.notes[i] = 0;
+    Snd.soft();
     save(); render();
   }
 
@@ -585,6 +592,7 @@
     if (!G || !history.length) { toast('Nichts zum Rückgängigmachen'); return; }
     const h = history.pop();
     G.values = h.values; G.notes = h.notes; G.hint = h.hint;
+    Snd.soft();
     save(); render();
   }
 
@@ -598,6 +606,7 @@
     G.hint[i] = 1;
     G.scored[i] = 1;      // Joker-Felder bringen keine Punkte
     G.hints++;
+    Snd.hint();
     placedCorrect(i, G.solution[i]);
     save(); render(); checkWin(i);
   }
@@ -687,6 +696,7 @@
     if (record) { best[G.level] = total; store.set(BEST_KEY, best); }
     sel = -1; render();
     Bg.celebrate();
+    setTimeout(() => Snd.win(), 250);
     const lvl = G.level;
     setTimeout(() => {
       modal(`
@@ -766,10 +776,10 @@
 
   // ---------- Ereignisse ----------
   tap($('#backBtn'), backDialog);
-  tap($('#undoBtn'), undo);
-  tap($('#eraseBtn'), erase);
-  tap($('#hintBtn'), useHint);
-  tap($('#notesBtn'), toggleNotes);
+  tap($('#undoBtn'), undo, true);
+  tap($('#eraseBtn'), erase, true);
+  tap($('#hintBtn'), useHint, true);
+  tap($('#notesBtn'), () => { Snd.soft(); toggleNotes(); }, true);
   tap($('#resumeBtn'), resumeGame);
   tap($('#startBtn'), () => menuView($('#menu').classList.contains('pick') ? 'main' : 'levels'));
   tap($('#settingsBtn'), settingsDialog);
@@ -822,6 +832,7 @@
   });
 
   // ---------- Start ----------
+  Snd.setEnabled(settings().sound);
   buildBoard();
   buildNumpad();
   show('menu');
