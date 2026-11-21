@@ -10,6 +10,14 @@
     { name: 'Gehirnjogging',  desc: 'Ab jetzt wird’s ernst',  clues: 27, mult: 3,   par: 25, color: '#c083dd' },
     { name: 'Traumatherapie', desc: 'Viel Glück.',            clues: 23, mult: 4,   par: 35, color: '#e2104c' },
   ];
+  // Leicht ungleichmäßige Kreise für die Farbpunkte im Menü (wie mit dem Stift gemalt)
+  const BLOBS = [
+    '58% 42% 55% 45% / 47% 56% 44% 53%',
+    '45% 55% 48% 52% / 56% 44% 58% 42%',
+    '52% 48% 40% 60% / 44% 58% 42% 56%',
+    '60% 40% 54% 46% / 52% 42% 58% 48%',
+    '44% 56% 58% 42% / 58% 46% 54% 42%',
+  ];
   const SAVE_KEY = 'sudoku-save-v1';
   const BEST_KEY = 'sudoku-best-v1';
   const STATS_KEY = 'sudoku-stats-v1'; // { [stufe]: { solved, bestTime, totalTime, noHint } }
@@ -111,8 +119,8 @@
       const b = document.createElement('button');
       b.className = 'paper btn level';
       b.innerHTML = `
-        <span class="dot" style="background:${L.color};box-shadow:0 0 12px ${L.color}"></span>
-        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.desc}</span></span>
+        <span class="blob" style="background:${L.color};border-radius:${BLOBS[idx % BLOBS.length]}"></span>
+        <span class="level-text"><span class="level-title">${L.name}</span><span class="level-desc">${L.clues < 30 ? 'ca. ' : ''}${L.clues} Startzahlen</span></span>
         <span class="level-best">${best[idx] ? '★ ' + best[idx] : ''}</span>`;
       tap(b, () => requestNewGame(idx));
       wrap.appendChild(b);
